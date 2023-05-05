@@ -15,7 +15,7 @@ class Usuario(db.Model, UserMixin):
         return {
             'correo_usuario': self.correo_usuario,
             'usuario': self.usuario,
-            'contrasena': self.contrasena,  # Ten en cuenta que incluir contraseñas en la respuesta puede no ser seguro
+            'contrasena': self.contrasena,
             'foto_usuario': self.foto_usuario,
             'cve_tipo_usuario': self.cve_tipo_usuario,
             'habilitado': self.habilitado

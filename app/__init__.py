@@ -29,7 +29,12 @@ def create_app(config_class=Config):
     
     login_manager.init_app(app)
 
-    from app import routes
-    app.register_blueprint(routes.bp)
+    from app import route
+    app.register_blueprint(route.bp)
 
+    """
+    from .routes.inicializar_db_routes import inicializar_blueprint
+    app.register_blueprint(inicializar_blueprint)
+    """
+    
     return app
