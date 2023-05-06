@@ -7,8 +7,8 @@ class Sitio(db.Model):
     x_longitud = db.Column(db.Float(precision=10), nullable=False)
     y_latitud = db.Column(db.Float(precision=10), nullable=False)
     direccion = db.Column(db.String(400), nullable=False)
-    fecha_actualizacion = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     
+    fecha_actualizacion = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     descripcion = db.Column(db.String(400), nullable=True)
     correo_sitio = db.Column(db.String(100), nullable=True)
     fecha_fundacion = db.Column(db.DateTime, nullable=True)
