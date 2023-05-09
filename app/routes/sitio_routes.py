@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Sitio, Delegacion, Colonia, Horario, TipoSitio
+from app.models import Sitio, Delegacion, Colonia, Horario, TipoSitio, Etiqueta, EtiquetaTipoSitio, Servicio, ServicioHotel, SitioEtiqueta, FotoSitio
 from app.utils.validaciones import datos_necesarios
 
 sitio_bp = Blueprint('sitio', __name__)
@@ -77,7 +77,11 @@ def crear_sitio():
     pagina_web = data.get('pagina_web')
     telefono = data.get('telefono')
     adscripcion = data.get('adscripcion')
+    
+    # Son opcionales y pertenecen a otros modelos.
     horarios = data.get('horarios') # Debe ser una tupla o lista con todos los horarios.
+    etiquetas = data.get('etiquetas')
+    servicios = data.get('servicios')
     
     # Se verifica que hayan entregado los datos necesarios.
     if not datos_necesarios(nombre_sitio, x_longitud, y_latitud, direccion, tipo_sitio, delegacion, colonia):
@@ -144,9 +148,9 @@ def crear_sitio():
     if horarios is not None:
         for horario in horarios:
             horario_nuevo = Horario(
-                dia = horario[0],
-                horario_apertura = horario[1],
-                horario_cierre = horario[2],
+                dia = horario["dia"],
+                horario_apertura = horario["horario_apertura"],
+                horario_cierre = horario["horario_cierre"],
                 cve_sitio = sitio_objeto.cve_sitio
             )
             # Se añade el horario a la sesión.
@@ -154,6 +158,85 @@ def crear_sitio():
             # Se confirma y se aplican los cambios realizados en la base de datos.
             db.session.commit()
     
+    # Si se especificaron las etiquetas del sitio de interés y pertenece a grupo adecuado.
+    if etiquetas is not None and tipo_sitio == "Museo" or tipo_sitio == "Restaurante":
+        for etiqueta in etiquetas:
+            # Verifica que se encuentre registrada la etiqueta en la base de datos.
+            etiqueta_objeto = Etiqueta.query.filter_by(nombre_etiqueta=etiqueta).first()
+            # Si la etiqueta no esta registrada en la base de datos, se agrega.
+            if etiqueta_objeto is None:
+                nueva_etiqueta = Etiqueta(
+                    nombre_etiqueta = etiqueta
+                )
+                # Se añade la etiqueta a la sesión.
+                db.session.add(nueva_etiqueta)
+                # Se confirma y se aplican los cambios realizados en la base de datos.
+                db.session.commit()
+                # Se obtiene la etiqueta recien agregada a la base de datos.
+                etiqueta_objeto = Etiqueta.query.filter_by(nombre_etiqueta=etiqueta).first()
+            
+            # Verifica que se no este registrada la relación entre sitio y etiqueta en la base de datos.
+            relacion_objeto_SE = SitioEtiqueta.query.filter_by(cve_sitio=sitio_objeto.cve_sitio, cve_etiqueta=etiqueta_objeto.cve_etiqueta).first()
+            
+            if relacion_objeto_SE is None:
+                # Se crea la relación entre sitio y etiqueta.
+                nueva_relacion = SitioEtiqueta(
+                    cve_sitio = sitio_objeto.cve_sitio,
+                    cve_etiqueta = etiqueta_objeto.cve_etiqueta
+                )
+                
+                # Se añade la relación entre sitio y etiqueta a la sesión.
+                db.session.add(nueva_relacion)
+                # Se confirma y se aplican los cambios realizados en la base de datos.
+                db.session.commit() 
+            
+            # Verifica que se no este registrada la relación entre tipo sitio y etiqueta en la base de datos.
+            relacion_objeto_TSE = EtiquetaTipoSitio.query.filter_by(cve_tipo_sitio=sitio_objeto.cve_tipo_sitio, cve_etiqueta=etiqueta_objeto.cve_etiqueta).first()
+            
+            if relacion_objeto_TSE is None:
+                # Se crea la relación entre tipo sitio y etiqueta.
+                nueva_relacion = EtiquetaTipoSitio(
+                    cve_tipo_sitio=sitio_objeto.cve_tipo_sitio,
+                    cve_etiqueta=etiqueta_objeto.cve_etiqueta
+                )
+                
+                # Se añade la relación entre tipo sitio y etiqueta a la sesión.
+                db.session.add(nueva_relacion)
+                # Se confirma y se aplican los cambios realizados en la base de datos.
+                db.session.commit() 
+            
+    # Si se especificaron las etiquetas del sitio de interés y pertenece a grupo adecuado.
+    if servicios is not None and tipo_sitio == "Hotel":
+        for servicio in servicios:
+            # Verifica que se encuentre registrada el servicio en la base de datos.
+            servicio_objeto = Servicio.query.filter_by(nombre_servicio=servicio).first()
+            # Si la etiqueta no esta registrada en la base de datos, se agrega.
+            if servicio_objeto is None:
+                nuevo_servicio = Servicio(
+                nombre_servicio = servicio
+                )
+                # Se añade el servicio a la sesión.
+                db.session.add(nuevo_servicio)
+                # Se confirma y se aplican los cambios realizados en la base de datos.
+                db.session.commit()
+                # Se obtiene el servicio recien agregado a la base de datos.
+                servicio_objeto = Servicio.query.filter_by(nombre_servicio=servicio).first()
+
+            # Verifica que se no este registrada la relación entre sitio y servicio en la base de datos.
+            relacion_objeto_SS = ServicioHotel.query.filter_by(cve_sitio = sitio_objeto.cve_sitio, cve_servicio=servicio_objeto.cve_servicio).first()
+            
+            if relacion_objeto_SS is None:
+                # Se crea la relación entre sitio y servicio.
+                nueva_relacion = ServicioHotel(
+                    cve_sitio = sitio_objeto.cve_sitio,
+                    cve_servicio=servicio_objeto.cve_servicio
+                )
+                
+                # Se añade la relación entre sitio y servicio a la sesión.
+                db.session.add(nueva_relacion)
+                # Se confirma y se aplican los cambios realizados en la base de datos.
+                db.session.commit() 
+            
     # Faltan las imagenes de los sitios de interés.
     
     # Si todo sale bien, regresa un json con el nombre de usuario (se va a modificar)
@@ -179,7 +262,70 @@ def eliminar_sitio():
     if existe_sitio is None:
         return jsonify({"error": "No existe el sitio a eliminar."}), 404
     
+    ################ ELIMINACIÓN DE RELACIONES #####################
+    
+    ### FotoSitio ###
+    
+    # Se busca si hay fotos del sitio almacenadas en la base de datos.
+    fotos_de_sitio = FotoSitio.query.filter(FotoSitio.cve_sitio == identificador_sitio).all()
+    
+    # Se verifica que haya una relación con el modelo fotositio en la base de datos.
+    if fotos_de_sitio is not None:
+        for foto_de_sitio in fotos_de_sitio:
+            # Se especifica la imagen de sitio a eliminar.
+            db.session.delete(foto_de_sitio)
+            # Se confirman los cambios.
+            db.session.commit()
+    
+    ### Horario ###
+    
+    # Se busca si hay horarios del sitio almacenadas en la base de datos.
+    horarios_de_sitio = Horario.query.filter(Horario.cve_sitio == identificador_sitio).all()
+    
+    # Se verifica que haya horarios relacionados con el sitio en la base de datos.
+    if horarios_de_sitio is not None:
+        for horario_de_sitio in horarios_de_sitio:
+            # Se especifica el horario del sitio a eliminar.
+            db.session.delete(horario_de_sitio)
+            # Se confirman los cambios.
+            db.session.commit()
+    
+    ### SitioEtiqueta ###
+    
+    # Se busca si tiene relaciones con alguna etiqueta almacenada en la base de datos.
+    etiquetas_de_sitio = SitioEtiqueta.query.filter(SitioEtiqueta.cve_sitio == identificador_sitio).all()
+    
+    print(type(etiquetas_de_sitio))
+    print(etiquetas_de_sitio)
+    
+    # Se verifica que haya etiquetas relacionadas con el sitio en la base de datos.
+    if etiquetas_de_sitio is not None:
+        for etiqueta_de_sitio in etiquetas_de_sitio:
+            # Se especifica la relación del sitio a eliminar.
+            db.session.delete(etiqueta_de_sitio)
+            # Se confirman los cambios.
+            db.session.commit()
+            
+    ### ServicioHotel ###
+    
+    # Se busca si tiene relaciones con algún servicio almacenada en la base de datos.
+    servicios_de_sitio = ServicioHotel.query.filter(ServicioHotel.cve_sitio == identificador_sitio).all()
+
+    # Se verifica que haya servicios relacionados con el sitio en la base de datos.
+    if servicios_de_sitio is not None:
+        for servicio_de_sitio in servicios_de_sitio:
+            # Se especifica la relación del sitio a eliminar.
+            db.session.delete(servicio_de_sitio)
+            # Se confirman los cambios.
+            db.session.commit()
+            
+    ### Se elimina el sitio ###
+    
     # Se especifica el sitio a eliminar.
     db.session.delete(existe_sitio)
     # Se confirman los cambios.
     db.session.commit()
+
+    # Si todo sale bien, regresa un mensaje de que el sitio a sido eliminado.
+    return jsonify({"message": "Sitio eliminado."}), 201
+
