@@ -27,6 +27,8 @@ def create_app(config_class=Config):
     CORS(app) # Habilita y configura CORS.
     
     login_manager.init_app(app) # Inicializa instancia LoginManager.
+    
+    app.config["IMG_SITIOS"] = "app/data/sitios"
 
     # Rutas que se han registrado
     from app import routes

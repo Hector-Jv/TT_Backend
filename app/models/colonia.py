@@ -6,5 +6,5 @@ class Colonia(db.Model):
     cve_delegacion = db.Column(db.Integer, db.ForeignKey('delegacion.cve_delegacion') , nullable=False)
     
     delegacion = db.relationship('Delegacion', backref='colonias')
-    
+
     

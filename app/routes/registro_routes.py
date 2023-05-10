@@ -23,7 +23,7 @@ def registrar_usuario():
         return jsonify({"error": "Hacen falta datos."}), 400
     
     # Se verifica que el correo tenga el formato correcto.
-    if not formato_correo:
+    if not formato_correo(correo):
         return jsonify({"error": "El correo ingresado no es válido."}), 400
 
     # Se verifica que la contraseña cumpla con el formato correcto.
@@ -64,4 +64,4 @@ def registrar_usuario():
     db.session.commit()
     
     # Si todo sale bien, regresa un json con el nombre de usuario (se va a modificar)
-    return jsonify({"usuario": usuario.usuario, "message": "Usuario creado con éxito"}), 201
+    return jsonify({"usuario": nuevo_usuario.usuario, "correo_usuario": correo, "message": "Usuario creado con éxito"}), 201
