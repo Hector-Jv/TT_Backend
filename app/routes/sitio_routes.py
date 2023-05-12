@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app, send_from_directory
+import os
 from datetime import datetime
 from app import db
 from werkzeug.utils import secure_filename
@@ -9,20 +10,23 @@ from app.utils.validaciones import datos_necesarios
 sitio_bp = Blueprint('sitio', __name__)
 
 @sitio_bp.route('/imagen', methods=['POST'])
-def obtener_imagenes():
+def guardar_imagenes():
     imagenes = request.files.getlist('imagenes')
     cve_sitio = request.form.get('cve_sitio')
-
     for imagen in imagenes:
         es_valida, mensaje_error = FotoSitio.validar_imagen(imagen)
         if not es_valida:
             return jsonify({"error": mensaje_error}), 400
-
-        FotoSitio.guardar_imagen(imagen, 10)
-
+        FotoSitio.guardar_imagen(imagen, cve_sitio, current_app)
     return jsonify({"message": "Se añadió correctamente"}), 201
 
+@sitio_bp.route('/imagenes_sitio/<int:cve_sitio>')
+def mostrar_imagenes_sitio(cve_sitio):
+    return jsonify(FotoSitio.obtener_imagenes_sitio(cve_sitio))
 
+@sitio_bp.route('/data/sitios/<path:filename>')
+def serve_image(filename):
+    return send_from_directory(current_app.config["IMG_SITIOS"], filename)
 
 @sitio_bp.route('/sitios', methods=['GET'])
 def obtener_sitios():

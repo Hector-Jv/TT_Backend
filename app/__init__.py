@@ -29,6 +29,9 @@ def create_app(config_class=Config):
     login_manager.init_app(app) # Inicializa instancia LoginManager.
     
     app.config["IMG_SITIOS"] = "app/data/sitios"
+    app.config["IMG_COMENTARIOS"] = "app/data/comentarios"
+    app.config["IMG_PERFIL"] = "app/data/perfil"
+    
 
     # Rutas que se han registrado
     from app import routes
