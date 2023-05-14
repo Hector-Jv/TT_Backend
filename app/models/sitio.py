@@ -195,6 +195,15 @@ class Sitio(db.Model):
 
     @staticmethod
     def consultar_sitios_por_colonia(cve_colonia):
+        """
+        Método estático para consultar todos los sitios que pertenecen a una cierta colonia.
+
+        Argumentos:
+            cve_colonia (int): Clave de la colonia a consultar.
+
+        Retorno:
+            list, int: Lista de diccionarios con los datos de los sitios y código de estado HTTP, o mensaje de error y código de estado HTTP.
+        """
         sitios = Sitio.query.filter_by(cve_colonia=cve_colonia).all()
         if sitios:
             return [{
