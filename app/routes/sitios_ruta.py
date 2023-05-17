@@ -74,8 +74,8 @@ def mostrar_sitios_con_filtros():
     for sitio in sitios_por_tipo_sitio:
         if sitio["costo_promedio"] is None or precio_min <= sitio["costo_promedio"] <= precio_max:
             
-            query = Calificacion.query.join(Historial)
-            filtered_query = query.filter(Historial.cve_sitio == sitio["cve_sitio"])
+            union_calificacion_historial = Calificacion.query.join(Historial)
+            filtered_query = union_calificacion_historial.filter(Historial.cve_sitio == sitio["cve_sitio"])
             calificaciones_sitio = [calificacion.calificacion_general for calificacion in filtered_query.all()]
             
             if calificaciones_sitio:
