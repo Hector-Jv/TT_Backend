@@ -1,0 +1,2 @@
+name: app
+command: python app.py
