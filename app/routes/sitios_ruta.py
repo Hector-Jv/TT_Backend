@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, redirect, request
 from app import db
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.models import TipoSitio, Sitio, Delegacion, Colonia, Calificacion, Historial, Horario, ServicioHotel, Servicio, SitioEtiqueta, Etiqueta, FotoSitio, Usuario
@@ -12,12 +12,10 @@ Rutas creadas:
     /sitios/filtros [GET]
     /sitios/<nombre sitio> [GET]
 """
-
-
 @sitio_bp.route('/')
-def hola_mundo():
-    
-    return 'Hola mundo!!!'
+def menu():
+    return redirect("/inicio")
+
 
 @sitio_bp.route('/inicio', methods=["GET"])
 def mostrar_tipo_sitios():

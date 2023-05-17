@@ -38,5 +38,8 @@ def create_app(config_class=Config):
     from app import routes
 
     app.register_blueprint(routes.sitio_bp)
+    app.register_blueprint(routes.login_bp)
+    app.register_blueprint(routes.registro_bp)
+    app.register_blueprint(routes.usuario_bp)
     
     return app 
