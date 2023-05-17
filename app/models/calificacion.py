@@ -56,27 +56,6 @@ class Calificacion(db.Model):
         return 'Calificacion no encontrada', 404
 
     @staticmethod
-    def consultar_calificaciones_por_historial(cve_historial):
-        """
-        Consulta todas las calificaciones asociadas a un historial específico.
-
-        Argumentos:
-            cve_historial (int): Clave del historial a consultar.
-
-        Retorno:
-            list: Lista de diccionarios con la información de las calificaciones si se encuentran, 
-                  y un mensaje de error si no se encuentran.
-        """
-        calificaciones = Calificacion.query.filter_by(cve_historial=cve_historial).all()
-        if calificaciones:
-            return [{
-                'cve_calificacion': calificacion.cve_calificacion,
-                'calificacion_general': calificacion.calificacion_general,
-                'cve_historial': calificacion.cve_historial,
-            } for calificacion in calificaciones], 200
-        return 'No se encontraron calificaciones para este historial', 404
-
-    @staticmethod
     def consultar_calificaciones_por_rango(rango_bajo, rango_alto):
         """
         Consulta todas las calificaciones que se encuentren dentro de un rango específico.

@@ -18,3 +18,4 @@ from .sitio import Sitio
 from .tipo_sitio import TipoSitio
 from .tipo_usuario import TipoUsuario
 from .usuario import Usuario
+from .visitas_sitio import VisitasSitio

@@ -62,7 +62,33 @@ class Sitio(db.Model):
         self.telefono = telefono
         self.adscripcion = adscripcion
         self.fecha_actualizacion = datetime.utcnow()
-        
+    
+    def to_dict(self):
+        """
+        Método para convertir el objeto del sitio a un diccionario.
+
+        Retorno:
+            dict: Diccionario que representa el sitio.
+        """
+        return {
+            'cve_sitio': self.cve_sitio,
+            'nombre_sitio': self.nombre_sitio,
+            'x_longitud': self.x_longitud,
+            'y_latitud': self.y_latitud,
+            'direccion': self.direccion,
+            'fecha_actualizacion': self.fecha_actualizacion.isoformat() if self.fecha_actualizacion else None,
+            'descripcion': self.descripcion,
+            'correo_sitio': self.correo_sitio,
+            'fecha_fundacion': self.fecha_fundacion.isoformat() if self.fecha_fundacion else None,
+            'costo_promedio': self.costo_promedio,
+            'habilitado': self.habilitado,
+            'pagina_web': self.pagina_web,
+            'telefono': self.telefono,
+            'adscripcion': self.adscripcion,
+            'cve_tipo_sitio': self.cve_tipo_sitio,
+            'cve_colonia': self.cve_colonia
+        }
+    
     def actualizar_sitio(self, nombre_sitio=None, x_longitud=None, y_latitud=None, direccion=None, cve_tipo_sitio=None, cve_colonia=None, descripcion=None, correo_sitio=None, fecha_fundacion=None, costo_promedio=None, habilitado=None, pagina_web=None, telefono=None, adscripcion=None):
         """
         Método para actualizar los datos de un sitio.
@@ -176,6 +202,7 @@ class Sitio(db.Model):
         sitios = Sitio.query.filter_by(cve_tipo_sitio=cve_tipo_sitio).all()
         if sitios:
             return [{
+                'cve_sitio': sitio.cve_sitio,
                 'nombre_sitio': sitio.nombre_sitio,
                 'x_longitud': sitio.x_longitud,
                 'y_latitud': sitio.y_latitud,

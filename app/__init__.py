@@ -31,14 +31,12 @@ def create_app(config_class=Config):
     app.config["IMG_SITIOS"] = "app/data/sitios"
     app.config["IMG_COMENTARIOS"] = "app/data/comentarios"
     app.config["IMG_PERFIL"] = "app/data/perfil"
+    app.config["IMG_INICIO"] = "app/data/inicio"
     
 
     # Rutas que se han registrado
     from app import routes
-    
-    app.register_blueprint(routes.login_bp)
-    app.register_blueprint(routes.registro_bp)
-    app.register_blueprint(routes.usuario_bp)
+
     app.register_blueprint(routes.sitio_bp)
     
     return app 

@@ -3,6 +3,7 @@ from app import db
 class TipoSitio(db.Model):
     cve_tipo_sitio = db.Column(db.Integer, primary_key=True)
     tipo_sitio = db.Column(db.String(100), nullable=False)
+    ruta_imagen = db.Column(db.String(400), nullable=False)
 
     def __init__(self, tipo_sitio):
         """
@@ -75,7 +76,7 @@ class TipoSitio(db.Model):
         """
         tipos_sitio = TipoSitio.query.all()
         if tipos_sitio:
-            return [{'cve_tipo_sitio': tipo_sitio.cve_tipo_sitio, 'tipo_sitio': tipo_sitio.tipo_sitio} for tipo_sitio in tipos_sitio], 200
+            return [{'cve_tipo_sitio': tipo_sitio.cve_tipo_sitio, 'tipo_sitio': tipo_sitio.tipo_sitio, 'ruta_imagen': tipo_sitio.ruta_imagen} for tipo_sitio in tipos_sitio], 200
         return 'No se encontraron tipos de sitio', 404
 
 

@@ -77,7 +77,7 @@ class Historial(db.Model):
                 'cve_usuario': historial.cve_usuario,
                 'cve_sitio': historial.cve_sitio,
             } for historial in historiales], 200
-        return 'No se encontraron historiales para este sitio', 404
+        return None, 404
     
     @staticmethod
     def consultar_historiales_por_usuario(cve_usuario):
