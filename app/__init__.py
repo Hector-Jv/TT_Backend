@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy # Para interacción con base de datos.
 from flask_migrate import Migrate # Para hacer migraciones en la base de datos.
 from flask_cors import CORS # Para habilitar y configurar el Cross-Origin Resource Sharing (es un mecanismo de seguridad).
-from config import Config # Para hacer configuraciones.
+from app.config import Config # Para hacer configuraciones.
 from flask_login import LoginManager # Para la autenticación y gestión de sesiones. 
 from flask_jwt_extended import JWTManager # Para la autenticación y autorización basada en tokens JWT.
 import os # Para interactuar con el sistema operativo.
