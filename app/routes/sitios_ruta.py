@@ -13,6 +13,10 @@ Rutas creadas:
     /sitios/<nombre sitio> [GET]
 """
 
+@sitio_bp.route('/')
+def hola_mundo():
+    return 'Hola mundo!!!'
+
 @sitio_bp.route('/inicio', methods=["GET"])
 def mostrar_tipo_sitios():
     
