@@ -28,6 +28,8 @@ usuario_bp
     @usuario_bp.route('/admin', methods=['GET']) @jwt_required()
 """
 
+from .inicializar_datos_route import inicial_bp
+
 """
 from .sitio_routes import sitio_bp
 

@@ -16,7 +16,7 @@ def registrar_usuario():
     correo = data.get('correo')
     usuario = data.get('usuario')
     contrasena = data.get('contrasena')
-    foto_usuario = data.get('foto_usuario')
+    foto_usuario = data.get('foto_usuario', None)
 
     # Se verifica que hayan entregado los datos necesarios.
     if not datos_necesarios(correo, usuario, contrasena):
@@ -52,9 +52,8 @@ def registrar_usuario():
         correo_usuario=correo, 
         usuario=usuario, 
         contrasena=contrasena, 
-        foto_usuario=foto_usuario, 
-        cve_tipo_usuario=tipo_usuario.cve_tipo_usuario,
-        habilitado=True
+        foto=foto_usuario, 
+        cve_tipo_usuario=tipo_usuario.cve_tipo_usuario
     )
     
     # Se añade el usuario a la sesión.

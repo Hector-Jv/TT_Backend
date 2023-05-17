@@ -39,7 +39,7 @@ class Usuario(db.Model, UserMixin):
         self.cve_tipo_usuario = cve_tipo_usuario
         self.habilitado = True
 
-        if foto and self.verificar_extension(foto.filename):  
+        if foto is not None and self.verificar_extension(foto.filename):  
             if not self.tamaño_permitido(len(foto.read())):
                 raise ValueError('Foto demasiada pesada.')
             foto.seek(0)
@@ -54,6 +54,8 @@ class Usuario(db.Model, UserMixin):
             foto.save(os.path.join(current_app.config['IMG_PERFIL'], nombre_unico))
             ruta_foto = os.path.join(current_app.config['IMG_PERFIL'], nombre_unico)
             self.ruta_foto_usuario = ruta_foto
+        else:
+            self.ruta_foto_usuario = None
     
     @property
     def contrasena(self): 

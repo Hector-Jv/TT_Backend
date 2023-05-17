@@ -41,5 +41,6 @@ def create_app(config_class=Config):
     app.register_blueprint(routes.login_bp)
     app.register_blueprint(routes.registro_bp)
     app.register_blueprint(routes.usuario_bp)
+    app.register_blueprint(routes.inicial_bp)
     
     return app 

@@ -3,17 +3,15 @@ from app import db
 class TipoSitio(db.Model):
     cve_tipo_sitio = db.Column(db.Integer, primary_key=True)
     tipo_sitio = db.Column(db.String(100), nullable=False)
-    ruta_imagen = db.Column(db.String(400), nullable=False)
+    ruta_imagen = db.Column(db.String(400), nullable=True)
 
-    def __init__(self, tipo_sitio):
+    @staticmethod
+    def agregar_tipo_sitio(tipo_sitio):
         """
-        Método constructor de la clase TipoSitio.
-
-        Argumentos:
-            tipo_sitio (str): Nombre del tipo de sitio.
+        Agrega un nuevo tipo sitio a la base de datos.
         """
-        self.tipo_sitio = tipo_sitio
-        db.session.add(self)
+        nuevo_tipo_sitio = TipoSitio(tipo_sitio=tipo_sitio)
+        db.session.add(nuevo_tipo_sitio)
         db.session.commit()
 
     @staticmethod

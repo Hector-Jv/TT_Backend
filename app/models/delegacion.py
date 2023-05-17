@@ -4,15 +4,13 @@ class Delegacion(db.Model):
     cve_delegacion = db.Column(db.Integer, primary_key=True)
     nombre_delegacion = db.Column(db.String(100), nullable=False)
 
-    def __init__(self, nombre_delegacion):
+    @staticmethod
+    def agregar_delegacion(nombre_delegacion):
         """
-        Método constructor de la clase Delegacion.
-
-        Argumentos:
-            nombre_delegacion (str): Nombre de la delegación.
+        Se agrega una delegacion a la base de datos.
         """
-        self.nombre_delegacion = nombre_delegacion
-        db.session.add(self)
+        nueva_delegacion = Delegacion(nombre_delegacion=nombre_delegacion)
+        db.session.add(nueva_delegacion)
         db.session.commit()
         
     def to_dict(self):

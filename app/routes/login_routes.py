@@ -40,9 +40,9 @@ def inicio_sesion():
     
     
     if tipo_usuario.tipo_usuario == 'Administrador':
-        return jsonify({"access_token": access_token, "usuario": usuario.usuario, "tipo_usuario": "administrador"}), 200
+        return jsonify({"access_token": access_token, "usuario": usuario.usuario, "tipo_usuario": "Administrador"}), 200
     elif tipo_usuario.tipo_usuario == 'Usuario registrado':
-        return jsonify({"access_token": access_token, "usuario": usuario.usuario, "tipo_usuario": "registrado"}), 200
+        return jsonify({"access_token": access_token, "usuario": usuario.usuario, "tipo_usuario": "Usuario registrado"}), 200
     else:
         return jsonify({"error": "No se puede acceder a la cuenta."}), 403
 

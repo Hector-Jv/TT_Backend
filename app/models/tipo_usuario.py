@@ -12,17 +12,15 @@ class TipoUsuario(db.Model):
     cve_tipo_usuario = db.Column(db.Integer, primary_key=True)
     tipo_usuario = db.Column(db.String(50), nullable=False)
     
-    def agregar_tipo_usuario(self):
+    
+    @staticmethod
+    def agregar_tipo_usuario(tipo_usuario):
         """
-        Agrega el tipo de usuario actual a la base de datos.
-
-        Retorno:
-            str: Mensaje indicando que el tipo de usuario se guardó con éxito.
-            int: Código de estado HTTP 200.
+        Agrega el tipo de usuario a la base de datos.
         """
-        db.session.add(self)
+        nuevo_tipo_usuario = TipoUsuario(tipo_usuario=tipo_usuario) 
+        db.session.add(nuevo_tipo_usuario)  
         db.session.commit()
-        return 'Tipo usuario guardado', 200
     
     def eliminar_tipo_usuario(self):
         """
