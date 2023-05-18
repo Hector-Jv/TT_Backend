@@ -1,4 +1,4 @@
-from .sitios_ruta import sitio_bp
+from .sitios_routes import sitio_bp
 """
 sitio_bp
     @sitio_bp.route('/')
@@ -28,16 +28,4 @@ usuario_bp
     @usuario_bp.route('/admin', methods=['GET']) @jwt_required()
 """
 
-from .inicializar_datos_route import inicial_bp
-
-"""
-from .sitio_routes import sitio_bp
-
-    @sitio_bp.route('/imagen', methods=['POST'])
-    @sitio_bp.route('/imagenes_sitio/<int:cve_sitio>')
-    @sitio_bp.route('/data/sitios/<path:filename>')
-    @sitio_bp.route('/sitios', methods=['GET'])
-    @sitio_bp.route('/sitio', methods=['POST'])
-    @sitio_bp.route('/sitio', methods=['DELETE'])
-    @sitio_bp.route('/sitio', methods=['PUT'])
-"""
+from .inicializar_datos_routes import inicial_bp

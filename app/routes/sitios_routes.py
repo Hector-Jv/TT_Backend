@@ -144,7 +144,5 @@ def sitio_favorito():
     if not usuario:
         return jsonify({"error": "Necesitas estar logueado.", "id_usuario": identificador_usuario}), 404
     
-    data = request.get_json()
-    
-    Historial
+    return jsonify({"usuario": usuario}), 200
     

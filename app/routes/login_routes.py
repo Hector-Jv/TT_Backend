@@ -29,7 +29,7 @@ def inicio_sesion():
         return jsonify({"error": "Correo no encontrado"}), 404
     
     # Se verifica que la contraseña ingresada coincida con la registrada en la base de datos.
-    if usuario.contrasena != contrasena:
+    if not Usuario.verificar_contrasena(contrasena):
         return jsonify({"error": "Contraseña incorrecta"}), 401
     
     # Se crea un token de acceso que utiliza el correo del usuario como identificador único (flask_jwt_extended)
