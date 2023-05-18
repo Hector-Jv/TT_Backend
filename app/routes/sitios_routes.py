@@ -30,6 +30,8 @@ def mostrar_sitios():
     data = request.get_json()
     
     tipo_sitio = data.get("cve_tipo_sitio")
+    opcion_ordenamiento = request.get("ordenamiento", default=1)
+
     
     lista_tipo_sitios, codigo = TipoSitio.consultar_todos()
     if codigo == 404:
@@ -48,21 +50,45 @@ def mostrar_sitios():
         colonia_sitio = Colonia.obtener_colonia_por_id(sitio["cve_colonia"])
         sitio["delegacion"] = Delegacion.buscar_por_cve(colonia_sitio.to_dict()["cve_delegacion"])[0]["nombre_delegacion"]
         sitio["colonia"] = colonia_sitio.to_dict()["nombre_colonia"]
-         
+    
+    # Ordenar los datos.
+    if opcion_ordenamiento == 1: # Ordenamiento por calificacion (por defecto)
+        sitios_ordenados = sorted(lista_sitios, key=lambda sitio: sitio.calificacion_general, reverse=True)
+    elif opcion_ordenamiento == 2: # Ordenamiento por número de visitas
+        sitios_ordenados = sorted(lista_sitios, key=lambda sitio: len(sitio.historiales), reverse=True)
+    elif opcion_ordenamiento == 3: # Ordenamiento por mayor costo
+        sitios_ordenados = sorted(lista_sitios, key=lambda sitio: sitio.costo_promedio or float('inf'), reverse=True)
+    elif opcion_ordenamiento == 4: # Ordenamiento por menor costo
+        sitios_ordenados = sorted(lista_sitios, key=lambda sitio: sitio.costo_promedio or 0)
+    else:
+        return jsonify({"error": "No existe el ordenamiento especificado."}), 400
+
+    sitios_ordenados_json = [sitio.to_dict() for sitio in sitios_ordenados]
+
     return jsonify({
         "tipo_sitios": lista_tipo_sitios,
         "delegaciones": lista_delegaciones,
-        "sitios": lista_sitios}), 200
+        "sitios": sitios_ordenados_json}), 200
     
 
 @sitio_bp.route('/sitios/filtros', methods=["GET"])
 def mostrar_sitios_con_filtros():
     
-    cve_tipo_sitio = request.args.get("cve_tipo_sitio")
-    precio_min = request.args.get("precio_min", default=0, type=int)
-    precio_max = request.args.get("precio_max", default=float('inf'), type=int)
-    calificacion_min = request.args.get("calificacion", default=0, type=float)
-    cve_delegacion = request.args.get("cve_delegacion")
+    data = request.get_json()
+    
+    cve_tipo_sitio = request.get("cve_tipo_sitio")
+    precio_min = request.get("precio_min", default=0, type=int)
+    precio_max = request.get("precio_max", default=float('inf'), type=int)
+    calificacion_min = request.get("calificacion", default=0, type=float)
+    cve_delegacion = request.get("cve_delegacion")
+    opcion_ordenamiento = request.get("ordenamiento", default=1)
+    """
+    Opciones de ordenamiento:
+        1. Mejor calificados (Por defecto).
+        2. Mas visitados.
+        3. Mayor precio.
+        4. Menor precio.
+    """
     
     if cve_tipo_sitio is None:
         return jsonify({"Error": "Se debe especificar el tipo de sitio a buscar."}), 400
@@ -85,8 +111,23 @@ def mostrar_sitios_con_filtros():
             
             if (promedio_calificaciones is None or promedio_calificaciones >= calificacion_min) and (cve_delegacion is None or sitio["cve_delegacion"] == cve_delegacion):
                 sitios_filtrados.append(sitio)
+    
+    # Ordenar los datos.
+    if opcion_ordenamiento == 1: # Ordenamiento por calificacion (por defecto)
+        sitios_ordenados = sorted(sitios_filtrados, key=lambda sitio: sitio.calificacion_general, reverse=True)
+    elif opcion_ordenamiento == 2: # Ordenamiento por número de visitas
+        sitios_ordenados = sorted(sitios_filtrados, key=lambda sitio: len(sitio.historiales), reverse=True)
+    elif opcion_ordenamiento == 3: # Ordenamiento por mayor costo
+        sitios_ordenados = sorted(sitios_filtrados, key=lambda sitio: sitio.costo_promedio or float('inf'), reverse=True)
+    elif opcion_ordenamiento == 4: # Ordenamiento por menor costo
+        sitios_ordenados = sorted(sitios_filtrados, key=lambda sitio: sitio.costo_promedio or 0)
+    else:
+        return jsonify({"error": "No existe el ordenamiento especificado."}), 400
 
-    return jsonify({"Sitios": sitios_filtrados}), 200 
+    sitios_ordenados_json = [sitio.to_dict() for sitio in sitios_ordenados]
+
+    return jsonify({"Sitios": sitios_ordenados_json}), 200
+
 
 @sitio_bp.route('/sitios/<cve_sitio>', methods=["GET"])
 def mostrar_info_sitio(cve_sitio):
@@ -133,7 +174,7 @@ def mostrar_info_sitio(cve_sitio):
     
     return jsonify({"sitio": info_sitio[0]}), 200
 
-
+## PENDIENTE
 @sitio_bp.route('/sitio_favorito', methods=["POST"])
 @jwt_required()
 def sitio_favorito():
@@ -145,4 +186,3 @@ def sitio_favorito():
         return jsonify({"error": "Necesitas estar logueado.", "id_usuario": identificador_usuario}), 404
     
     return jsonify({"usuario": usuario}), 200
-    

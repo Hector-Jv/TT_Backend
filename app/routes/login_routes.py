@@ -32,8 +32,6 @@ def inicio_sesion():
     if not usuario.verificar_contrasena(contrasena):
         return jsonify({"error": "Contraseña incorrecta"}), 401
     
-    
-    
     # Se crea un token de acceso que utiliza el correo del usuario como identificador único (flask_jwt_extended)
     access_token = create_access_token(identity=usuario.correo_usuario)
     
