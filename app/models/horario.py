@@ -1,4 +1,5 @@
 from app import db
+from app.classes.validacion import Validacion
 
 class Horario(db.Model):
     cve_horario = db.Column(db.Integer, primary_key=True)
@@ -9,93 +10,159 @@ class Horario(db.Model):
     
     sitio = db.relationship('Sitio', backref='horarios')
 
-    def __init__(self, dia, horario_apertura, horario_cierre, cve_sitio):
+    def to_dict(self):
         """
-        Método para crear una nueva instancia de Horario.
+        Convertir el objeto del horario a un diccionario.
 
-        Argumentos:
+        Retorno:
+            dict: Diccionario que representa el sitio.
+        """
+        return {
+            'cve_horario': self.cve_horario,
+            'dia': self.dia,
+            'horario_apertura': str(self.horario_apertura),
+            'horario_cierre': str(self.horario_cierre),
+            'cve_sitio': self.cve_sitio
+        }
+
+    @staticmethod
+    def agregar_horario(dia, horario_apertura, horario_cierre, cve_sitio):
+        """
+        Agregar un nuevo horario a la base de datos.
+
+        Entrada:
             dia (str): Día de la semana.
             horario_apertura (Time): Hora de apertura del sitio.
             horario_cierre (Time): Hora de cierre del sitio.
             cve_sitio (int): Clave del sitio al que pertenece este horario.
+        
+        Retorno exitoso:
+            True: Se ha agregado el horario a la base de datos.
+        
+        Retorno fallido:
+            False: Ha ocurrido un error.
         """
-        self.dia = dia
-        self.horario_apertura = horario_apertura
-        self.horario_cierre = horario_cierre
-        self.cve_sitio = cve_sitio
-
-    def modificar_horario(self, dia, horario_apertura, horario_cierre):
+        try:
+            horario_nuevo = Horario(
+                dia = dia,
+                horario_apertura = horario_apertura,
+                horario_cierre = horario_cierre,
+                cve_sitio = cve_sitio 
+            )
+            db.session.add(horario_nuevo)
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+        
+    @staticmethod
+    def actualizar_horario(cve_horario, dia, horario_apertura, horario_cierre):
         """
-        Método para modificar un horario existente.
+        Actualizar los datos de un horario.
 
-        Argumentos:
+        Entrada obligatoria:
+            cve_horario (int): Clave del horario a actualizar.
+            
+        Entrada opcional:
             dia (str): Nuevo día de la semana.
-            horario_apertura (Time): Nueva hora de apertura del sitio.
-            horario_cierre (Time): Nueva hora de cierre del sitio.
+            horario_apertura (time): Nueva hora de apertura del sitio.
+            horario_cierre (time): Nueva hora de cierre del sitio.
+        
+        Retorno exitoso:
+            True: Se han hecho las actualizaciones.
+            
+        Retorno fallido:
+            False: Hubo un problema.
         """
-        self.dia = dia
-        self.horario_apertura = horario_apertura
-        self.horario_cierre = horario_cierre
-        db.session.commit()
-
-    @staticmethod
-    def consultar_horario(cve_horario):
-        """
-        Método para consultar un horario específico por su clave.
-
-        Argumentos:
-            cve_horario (int): Clave del horario a consultar.
-
-        Retorno:
-            dict, int: Diccionario con la información del horario y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
-        """
-        horario = Horario.query.get(cve_horario)
-        if horario:
-            return {
-                'cve_horario': horario.cve_horario,
-                'dia': horario.dia,
-                'horario_apertura': str(horario.horario_apertura),
-                'horario_cierre': str(horario.horario_cierre),
-                'cve_sitio': horario.cve_sitio
-            }, 200
-        return 'Horario no encontrado', 404
-
-    @staticmethod
-    def consultar_horarios_por_sitio(cve_sitio):
-        """
-        Método para consultar todos los horarios de un sitio específico.
-
-        Argumentos:
-            cve_sitio (int): Clave del sitio a consultar.
-
-        Retorno:
-            list, int: Lista de diccionarios con la información de los horarios y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
-        """
-        horarios = Horario.query.filter_by(cve_sitio=cve_sitio).all()
-        if horarios:
-            return [{
-                'cve_horario': horario.cve_horario,
-                'dia': horario.dia,
-                'horario_apertura': str(horario.horario_apertura),
-                'horario_cierre': str(horario.horario_cierre),
-                'cve_sitio': horario.cve_sitio
-            } for horario in horarios], 200
-        return 'No se encontraron horarios para este sitio', 404
-
+        try:
+            horario_encontrado = Horario.obtener_horario_por_cve(cve_horario)
+            
+            if not Validacion.valor_nulo(dia):
+                horario_encontrado.dia = dia
+            if not Validacion.valor_nulo(horario_apertura):
+                horario_encontrado.horario_apertura = horario_apertura
+            if not Validacion.valor_nulo(horario_cierre):
+                horario_encontrado.horario_cierre = horario_cierre
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+        
     @staticmethod
     def eliminar_horario(cve_horario):
         """
-        Método para eliminar un horario específico.
+        Eliminar un horario en específico.
 
-        Argumentos:
+        Entrada:
             cve_horario (int): Clave del horario a eliminar.
 
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
+        Retorno exitoso:
+            True: Se ha eliminado correctamente de la base de datos.
+            
+        Retorno fallido:
+            False: Hubo un error al querer eliminarlo.
         """
-        horario = Horario.query.get(cve_horario)
-        if horario:
-            db.session.delete(horario)
-            db.session.commit()
-            return {'message': 'Horario eliminado exitosamente.'}, 200
-        return 'Horario no encontrado', 404
+        try:
+            horario_encontrado = Horario.obtener_horario_por_cve(cve_horario)
+            if horario_encontrado:
+                db.session.delete(horario_encontrado)
+                db.session.commit()
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Hubo un problema: ", e)
+            return False
+
+    @staticmethod
+    def obtener_horario_por_cve(cve_horario):
+        """
+        Obtener un horario específico por su clave.
+
+        Entrada:
+            cve_horario (int): Clave del horario a consultar.
+
+        Retorno exitoso:
+            dict: Diccionario con la información del horario.
+            
+        Retorno fallido:
+            None: No se encontró el horario u ocurrió un error.
+        """
+        try:
+            horario_encontrado = Horario.query.get(cve_horario)
+
+            if horario_encontrado:
+                return horario_encontrado.to_dict()
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
+
+    @staticmethod
+    def obtener_horarios_por_sitio(cve_sitio):
+        """
+        Obtener todos los horarios de un sitio en específico.
+
+        Entrada:
+            cve_sitio (int): Clave del sitio a consultar.
+
+        Retorno exitoso:
+            list: Lista de diccionarios con la información de los horarios.
+        
+        Retorno fallido:
+            None: No se encontraron horario o hubo un error.
+        """
+        try:
+            horarios_encontrados = Horario.query.filter_by(cve_sitio=cve_sitio).all()
+            if horarios_encontrados:
+                return [horario.to_dict for horario in horarios_encontrados]
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
+
+    

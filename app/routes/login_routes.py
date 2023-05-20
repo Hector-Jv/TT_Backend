@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from app import db
 from app.models import Usuario, TipoUsuario
-from app.utils.validaciones import datos_necesarios
+from app.classes.validacion import Validacion
 
 
 login_bp = Blueprint('login', __name__)
@@ -18,7 +18,7 @@ def inicio_sesion():
     contrasena = data.get('contrasena')
     
     # Se verifica que hayan entregado los datos necesarios.
-    if not datos_necesarios(correo, contrasena):
+    if not Validacion.datos_necesarios(correo, contrasena):
         return jsonify({"error": "Correo y contraseña requeridos."}), 400
 
     # Busca si el correo del usuario se encuentra registrado.

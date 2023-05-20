@@ -4,8 +4,8 @@ from datetime import datetime
 from app import db
 from werkzeug.utils import secure_filename
 from PIL import Image
-from app.models import Sitio, Delegacion, Colonia, Horario, TipoSitio, Etiqueta, EtiquetaTipoSitio, Servicio, ServicioHotel, SitioEtiqueta, FotoSitio
-from app.utils.validaciones import datos_necesarios
+from app.models import Sitio, Delegacion, Colonia, Horario, TipoSitio, Etiqueta, Servicio, ServicioHotel, SitioEtiqueta, FotoSitio
+from app.classes.validacion import Validacion
 
 sitio_bp = Blueprint('sitio', __name__)
 
@@ -57,78 +57,54 @@ def obtener_sitios():
 @sitio_bp.route('/sitio', methods=['POST'])
 def crear_sitio():
     
-    # Datos recibidos del administrador.
+    ##  Datos obligatorios ##
+    
     data = request.get_json()
-
-    # Se extraen los datos recibidos.
-    # Son obligatorios.
-    nombre_sitio = data.get('nombre_sitio')
-    x_longitud = data.get('x_longitud')
-    y_latitud = data.get('y_latitud')
-    direccion = data.get('direccion')
+    nombre_sitio = data.get('nombre_sitio') # str
+    x_longitud = data.get('x_longitud') # float
+    y_latitud = data.get('y_latitud') # float
+    direccion = data.get('direccion') # str
+    cve_tipo_sitio = data.get('cve_tipo_sitio') # int
+    cve_delegacion = data.get('cve_delegacion') #int
+    colonia = data.get('colonia') # str
     
-    # Llave foraneas
-    tipo_sitio = data.get('tipo_sitio')
-    delegacion = data.get('delegacion')
-    colonia = data.get('colonia')
+    ## Datos opcionales ##
     
-    # Pueden ser nulos.
-    fecha_actualizacion = data.get('fecha_actualizacion', datetime.utcnow()) 
-    descripcion = data.get('descripcion')
-    correo_sitio = data.get('correo_sitio')
-    fecha_fundacion = data.get('fecha_fundacion')
-    costo_promedio = data.get('costo_promedio')
-    pagina_web = data.get('pagina_web')
-    telefono = data.get('telefono')
-    adscripcion = data.get('adscripcion')
+    fecha_actualizacion = data.get('fecha_actualizacion', datetime.utcnow()) # datetime
+    descripcion = data.get('descripcion') # str
+    correo_sitio = data.get('correo_sitio') # str
+    fecha_fundacion = data.get('fecha_fundacion') # datetime
+    costo_promedio = data.get('costo_promedio') # float
+    pagina_web = data.get('pagina_web') # str
+    telefono = data.get('telefono') # str
+    adscripcion = data.get('adscripcion') # str
+    horarios = data.get('horarios') # list
+    etiquetas = data.get('etiquetas') # list
+    servicios = data.get('servicios') # list
     
-    # Son opcionales y pertenecen a otros modelos.
-    horarios = data.get('horarios') # Debe ser una tupla o lista con todos los horarios.
-    etiquetas = data.get('etiquetas')
-    servicios = data.get('servicios')
+    ## Validacion de los datos ##
     
-    # Se verifica que hayan entregado los datos necesarios.
-    if not datos_necesarios(nombre_sitio, x_longitud, y_latitud, direccion, tipo_sitio, delegacion, colonia):
+    if not Validacion.datos_necesarios(nombre_sitio, x_longitud, y_latitud, direccion, cve_tipo_sitio, cve_delegacion, colonia):
         return jsonify({"error": "Hacen falta datos."}), 400
     
-    # Busca si el nombre del sitio ingresado se encuentra registrado.
-    existe_sitio = Sitio.query.filter_by(nombre_sitio=nombre_sitio).first()
+    sitio_encontrado = Sitio.obtener_sitio_por_nombre(nombre_sitio)
     
-    # Se verifica que no haya un sitio registrado en la base de datos.
-    if existe_sitio is not None:
+    if not Validacion.valor_nulo(sitio_encontrado):
         return jsonify({"error": "Ya existe el sitio ingresado."}), 404
     
-    # Busca el tipo de sitio que pertenece.
-    tipo_sitio_objeto = TipoSitio.query.filter_by(tipo_sitio=tipo_sitio).first()
-    
-    # Busca la delegacion al que pertenece.
-    delegacion_objeto = Delegacion.query.filter_by(nombre_delegacion=delegacion).first()
-    
-    # Busca la colonia al que pertenece.
-    colonia_objeto = Colonia.query.filter_by(nombre_colonia=colonia).first()
-    
+    colonia_encontrada = Colonia.obtener_colonia_por_nombre(colonia)
+
     # Se verifica que la colonia exista en la base de datos, sino se crea.
-    if colonia_objeto is None:
-        nueva_colonia = Colonia(
-            nombre_colonia = colonia,
-            cve_delegacion = delegacion_objeto.cve_delegacion
-        )
-        # Se añade la colonia a la sesión.
-        db.session.add(nueva_colonia)
-        # Se confirma y se aplican los cambios realizados en la base de datos.
-        db.session.commit()
-    
-        # Busca la colonia al que pertenece.
-        colonia_objeto = Colonia.query.filter_by(nombre_colonia=colonia).first()
-    
-    # Se crea el objeto Sitio
-    sitio = Sitio(
+    if Validacion.valor_nulo(colonia_encontrada):
+        if not Colonia.agregar_colonia(nombre_colonia=colonia, cve_delegacion=cve_delegacion):
+            return jsonify({"error": "Hubo un error al querer agregar la colonia."}), 400
+        colonia_encontrada = Colonia.obtener_colonia_por_nombre(colonia)
+
+    if not Sitio.agregar_sitio(
         nombre_sitio=nombre_sitio, 
         x_longitud=x_longitud, 
         y_latitud=y_latitud,
         direccion=direccion,
-        
-        fecha_actualizacion=fecha_actualizacion,
         descripcion=descripcion, 
         correo_sitio=correo_sitio,
         fecha_fundacion=fecha_fundacion, 
@@ -136,115 +112,67 @@ def crear_sitio():
         pagina_web=pagina_web, 
         telefono=telefono, 
         adscripcion=adscripcion,
-        
-        cve_tipo_sitio = tipo_sitio_objeto.cve_tipo_sitio,
-        cve_colonia = colonia_objeto.cve_colonia
-    )
-    # Se añade la colonia a la sesión.
-    db.session.add(sitio)
-    # Se confirma y se aplican los cambios realizados en la base de datos.
-    db.session.commit()
+        cve_tipo_sitio = cve_tipo_sitio,
+        cve_colonia = colonia_encontrada["cve_colonia"]
+    ):
+        return jsonify({"error": "Hubo un error al querer agregar el sitio."}), 400
     
-    # Buscamos el sitio recien ingresado.
-    sitio_objeto = Sitio.query.filter_by(nombre_sitio=nombre_sitio).first()
+    sitio_encontrado = Sitio.obtener_sitio_por_nombre(nombre_sitio)
     
-    # Si se especificaron los horarios del sitio de interes.
-    if horarios is not None:
+    ## Modelos externos a sitio ##
+    
+    # Horario #
+    if not Validacion.valor_nulo(horarios):
         for horario in horarios:
-            horario_nuevo = Horario(
+            if not Horario.agregar_horario(
                 dia = horario["dia"],
                 horario_apertura = horario["horario_apertura"],
                 horario_cierre = horario["horario_cierre"],
-                cve_sitio = sitio_objeto.cve_sitio
-            )
-            # Se añade el horario a la sesión.
-            db.session.add(horario_nuevo)
-            # Se confirma y se aplican los cambios realizados en la base de datos.
-            db.session.commit()
+                cve_sitio = sitio_encontrado["cve_sitio"]
+            ):
+                return jsonify({"error": "Hubo un error al querer agregar un horario."}), 400
     
-    # Si se especificaron las etiquetas del sitio de interés y pertenece a grupo adecuado.
-    if etiquetas is not None and tipo_sitio == "Museo" or tipo_sitio == "Restaurante":
+    tipo_sitio_encontrado = TipoSitio.obtener_tipositio_por_cve(cve_tipo_sitio)
+    
+    # Etiqueta #
+    if not Validacion.valor_nulo(etiquetas) and tipo_sitio_encontrado["tipo_sitio"] == "Museo" or tipo_sitio_encontrado["tipo_sitio"] == "Restaurante":
         for etiqueta in etiquetas:
-            # Verifica que se encuentre registrada la etiqueta en la base de datos.
-            etiqueta_objeto = Etiqueta.query.filter_by(nombre_etiqueta=etiqueta).first()
-            # Si la etiqueta no esta registrada en la base de datos, se agrega.
-            if etiqueta_objeto is None:
-                nueva_etiqueta = Etiqueta(
-                    nombre_etiqueta = etiqueta
-                )
-                # Se añade la etiqueta a la sesión.
-                db.session.add(nueva_etiqueta)
-                # Se confirma y se aplican los cambios realizados en la base de datos.
-                db.session.commit()
-                # Se obtiene la etiqueta recien agregada a la base de datos.
-                etiqueta_objeto = Etiqueta.query.filter_by(nombre_etiqueta=etiqueta).first()
-            
-            # Verifica que se no este registrada la relación entre sitio y etiqueta en la base de datos.
-            relacion_objeto_SE = SitioEtiqueta.query.filter_by(cve_sitio=sitio_objeto.cve_sitio, cve_etiqueta=etiqueta_objeto.cve_etiqueta).first()
-            
-            if relacion_objeto_SE is None:
-                # Se crea la relación entre sitio y etiqueta.
-                nueva_relacion = SitioEtiqueta(
-                    cve_sitio = sitio_objeto.cve_sitio,
-                    cve_etiqueta = etiqueta_objeto.cve_etiqueta
-                )
-                
-                # Se añade la relación entre sitio y etiqueta a la sesión.
-                db.session.add(nueva_relacion)
-                # Se confirma y se aplican los cambios realizados en la base de datos.
-                db.session.commit() 
-            
-            # Verifica que se no este registrada la relación entre tipo sitio y etiqueta en la base de datos.
-            relacion_objeto_TSE = EtiquetaTipoSitio.query.filter_by(cve_tipo_sitio=sitio_objeto.cve_tipo_sitio, cve_etiqueta=etiqueta_objeto.cve_etiqueta).first()
-            
-            if relacion_objeto_TSE is None:
-                # Se crea la relación entre tipo sitio y etiqueta.
-                nueva_relacion = EtiquetaTipoSitio(
-                    cve_tipo_sitio=sitio_objeto.cve_tipo_sitio,
-                    cve_etiqueta=etiqueta_objeto.cve_etiqueta
-                )
-                
-                # Se añade la relación entre tipo sitio y etiqueta a la sesión.
-                db.session.add(nueva_relacion)
-                # Se confirma y se aplican los cambios realizados en la base de datos.
-                db.session.commit() 
-            
-    # Si se especificaron las etiquetas del sitio de interés y pertenece a grupo adecuado.
-    if servicios is not None and tipo_sitio == "Hotel":
-        for servicio in servicios:
-            # Verifica que se encuentre registrada el servicio en la base de datos.
-            servicio_objeto = Servicio.query.filter_by(nombre_servicio=servicio).first()
-            # Si la etiqueta no esta registrada en la base de datos, se agrega.
-            if servicio_objeto is None:
-                nuevo_servicio = Servicio(
-                nombre_servicio = servicio
-                )
-                # Se añade el servicio a la sesión.
-                db.session.add(nuevo_servicio)
-                # Se confirma y se aplican los cambios realizados en la base de datos.
-                db.session.commit()
-                # Se obtiene el servicio recien agregado a la base de datos.
-                servicio_objeto = Servicio.query.filter_by(nombre_servicio=servicio).first()
+            etiqueta_encontrada = Etiqueta.obtener_etiqueta_por_nombre(etiqueta)
+            if Validacion.valor_nulo(etiqueta_encontrada):
+                Etiqueta.agregar_etiqueta(nombre_etiqueta = etiqueta)
+                etiqueta_encontrada = Etiqueta.obtener_etiqueta_por_nombre(etiqueta)
 
-            # Verifica que se no este registrada la relación entre sitio y servicio en la base de datos.
-            relacion_objeto_SS = ServicioHotel.query.filter_by(cve_sitio = sitio_objeto.cve_sitio, cve_servicio=servicio_objeto.cve_servicio).first()
-            
-            if relacion_objeto_SS is None:
-                # Se crea la relación entre sitio y servicio.
-                nueva_relacion = ServicioHotel(
-                    cve_sitio = sitio_objeto.cve_sitio,
-                    cve_servicio=servicio_objeto.cve_servicio
+            if not SitioEtiqueta.existe_relacion_etiqueta_y_sitio(
+                cve_etiqueta = etiqueta_encontrada["cve_etiqueta"],
+                cve_sitio = sitio_encontrado["cve_sitio"]
+            ):
+                SitioEtiqueta.agregar_relacion(
+                    cve_etiqueta = etiqueta_encontrada["cve_etiqueta"],
+                    cve_sitio = sitio_encontrado["cve_sitio"]
                 )
-                
-                # Se añade la relación entre sitio y servicio a la sesión.
-                db.session.add(nueva_relacion)
-                # Se confirma y se aplican los cambios realizados en la base de datos.
-                db.session.commit() 
+    
+    # Servicio #
+    if not Validacion.valor_nulo(servicios) and sitio_encontrado.tipo_sitio == "Hotel":
+        for servicio in servicios:
+            servicio_encontrado = Servicio.obtener_servicio_por_nombre(nombre_servicio=servicio)
+            
+            if Validacion.valor_nulo(servicio_encontrado):
+                Servicio.agregar_servicio(nombre_servicio = servicio)
+                servicio_encontrado = Servicio.obtener_servicio_por_nombre(nombre_servicio=servicio)
+
+            if not ServicioHotel.existe_relacion_servicio_y_hotel(
+                cve_sitio = sitio_encontrado["cve_sitio"], 
+                cve_servicio=servicio_encontrado["cve_servicio"]
+            ):
+                ServicioHotel.agregar_relacion(
+                    cve_sitio = sitio_encontrado["cve_sitio"],
+                    cve_servicio=servicio_encontrado["cve_servicio"]
+                )
             
     # Faltan las imagenes de los sitios de interés.
     
     # Si todo sale bien, regresa un json con el nombre de usuario (se va a modificar)
-    return jsonify({"message": "Sitio creado con éxito"}), 201
+    return jsonify({"mensaje": "Sitio creado con éxito"}), 201
 
 @sitio_bp.route('/sitio', methods=['DELETE'])
 def eliminar_sitio():
@@ -256,7 +184,7 @@ def eliminar_sitio():
     identificador_sitio = data.get('cve_sitio')
     
     # Se verifica que hayan entregado los datos necesarios.
-    if not datos_necesarios(identificador_sitio):
+    if not Validacion.datos_necesarios(identificador_sitio):
         return jsonify({"error": "Hacen falta datos."}), 400
     
     # Busca si el identificador del sitio ingresado se encuentra registrado en la base de datos.
@@ -335,61 +263,13 @@ def eliminar_sitio():
 
 @sitio_bp.route('/sitio', methods=['PUT'])
 def modificar_sitio():
-    """
-    Actualiza los valores de un sitio en la base de datos.
-
-    Recibe un JSON en la solicitud con los datos a actualizar.
     
-    Parámetros:
-        "cve_sitio": 10, # Entero
-        "nombre_sitio": "", # String
-        "x_longitud": -99.15177, # Float
-        "y_latitud": 19.4729, # Float
-        "direccion": "", # String 
-        "cve_tipo_sitio": 3, # Entero
-        "cve_delegacion": 2, # Entero
-        "colonia": "Liberación", # String
-        "fecha_actualizacion": "", # DateTime
-        "descripcion": null, # String
-        "correo_sitio": "", # String
-        "fecha_fundacion": "", #DateTime
-        "costo_promedio": null, # Float
-        "pagina_web": "", # String
-        "telefono": "", # String 
-        "adscripcion": null, # String
-        "horarios": [
-            {
-                "dia": "", # String
-                "horario_apertura": "", # Time 07:30:00
-                "horario_cierre": "" # Time 22:00:00
-            }
-        ],
-        # En caso de que sea Museo o Restaurante.
-        "Etiquetas": [
-            "", # String 
-        ],
-        # En caso de que sea Hotel
-        "servicios": [
-            "", #String
-        ]
-    
-    Los campos que no se incluyan en el JSON se mantendrán 
-    sin cambios en la base de datos.
-
-    Devuelve un JSON con un mensaje de éxito si la operación fue 
-    exitosa, o un JSON con un mensaje de error si algo fue mal.
-    """
-    
-    ### Se obtienen todos los datos del usuario ###
-    
-    # Datos recibidos del administrador.
+    # Datos obligatorios
     data = request.get_json()
-
-    # Es obligatorio
     cve_sitio = data['cve_sitio']
     
     # Se verifica que hayan entregado los datos necesarios.
-    if not datos_necesarios(cve_sitio):
+    if not Validacion.datos_necesarios(cve_sitio):
         return jsonify({"error": "Hacen falta datos."}), 400
     
     # Busca si el nombre del sitio ingresado se encuentra registrado.

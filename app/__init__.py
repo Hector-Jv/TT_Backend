@@ -37,10 +37,11 @@ def create_app(config_class=Config):
     # Rutas que se han registrado
     from app import routes
 
-    app.register_blueprint(routes.sitio_bp)
+    app.register_blueprint(routes.sitios_bp)
     app.register_blueprint(routes.login_bp)
     app.register_blueprint(routes.registro_bp)
     app.register_blueprint(routes.usuario_bp)
     app.register_blueprint(routes.inicial_bp)
+    app.register_blueprint(routes.sitio_bp)
     
     return app 

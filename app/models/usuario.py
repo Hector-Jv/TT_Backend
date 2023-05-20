@@ -185,19 +185,43 @@ class Usuario(db.Model, UserMixin):
     @staticmethod
     def consulta_por_correo(correo_usuario):
         """
-        Consulta un usuario por su correo.
+        Busca un usuario por su correo.
 
-        Argumentos:
+        Entrada:
             correo_usuario (str): El correo del usuario a consultar.
 
-        Retorno:
+        Retorno Exitoso:
             Usuario: Una instancia de Usuario con los datos del usuario consultado.
+        
+        Retorno Fallido:
+            None: No se encontró ningún usuario con ese correo.
         """
         try:
             usuario = Usuario.query.filter_by(correo_usuario=correo_usuario).one()
             return usuario
         except NoResultFound:
             return None
+
+    @staticmethod
+    def consulta_por_usuario(usuario):
+        """
+        Busca un usuario por su nombre de usuario.
+
+        Entrada:
+            usuario (str): El nombre del usuario del usuario a consultar.
+
+        Retorno Exitoso:
+            Usuario: Una instancia de Usuario con los datos del usuario consultado.
+        
+        Retorno Fallido:
+            None: No se encontró ningún usuario con ese nombre de usuario.
+        """
+        try:
+            usuario = Usuario.query.filter_by(usuario=usuario).one()
+            return usuario
+        except NoResultFound:
+            return None
+
 
     @staticmethod
     def es_usuario_habilitado(correo_usuario):
@@ -240,23 +264,3 @@ class Usuario(db.Model, UserMixin):
         self.habilitado = False
         db.session.commit()
         return 'Cuenta deshabilitada con éxito', 200
-
-    @staticmethod
-    def verificar_extension(filename):
-        extensiones_validas = {'png', 'jpg', 'jpeg', 'gif'}
-        return '.' in filename and filename.rsplit('.', 1)[1].lower() in extensiones_validas
-    
-    @staticmethod
-    def tamaño_permitido(tamaño_imagen):
-        tamaño_maximo = 1 * 1024 * 1024 # 1 Mb
-        if tamaño_maximo > tamaño_imagen:
-            return True
-        return False
-    
-    @staticmethod
-    def validar_imagen(foto):
-        try:
-            Image.open(foto.stream) # Intenta abrir la imagen.
-            return True
-        except:
-            return False

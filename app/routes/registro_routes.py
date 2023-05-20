@@ -1,51 +1,68 @@
 from flask import Blueprint, jsonify, request
 from app import db
 from app.models import Usuario, TipoUsuario
-from app.utils.validaciones import datos_necesarios, formato_contrasena, formato_correo
+from app.classes.validacion import Validacion
+from app.classes.imagen import Imagen
+import os
 
 
 registro_bp = Blueprint('registro', __name__)
 
+
+@registro_bp.route('/upload', methods=['POST'])
+def upload_image():
+    if 'image' not in request.files:
+        return jsonify({"error": "No se encontró la imagen"}), 400
+
+    image = request.files['image']
+    if image.filename == '':
+        return jsonify({"error": "El nombre de la imagen está vacío"}), 400
+
+    # Cambia 'uploads' al nombre de la carpeta donde deseas guardar las imágenes
+    folder_path = 'uploads'
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    image.save(os.path.join(folder_path, image.filename))
+    return jsonify({"message": "Imagen guardada correctamente"}), 200
+
+
+
 @registro_bp.route('/registro', methods=['POST'])
 def registrar_usuario():
     
-    # Datos recibidos del usuario.
+    ## Datos necesarios ##
     data = request.get_json()
-
-    # Se extraen los datos recibidos del usuario.
     correo = data.get('correo')
     usuario = data.get('usuario')
     contrasena = data.get('contrasena')
-    foto_usuario = data.get('foto_usuario', None)
 
-    # Se verifica que hayan entregado los datos necesarios.
-    if not datos_necesarios(correo, usuario, contrasena):
+    ## Validaciones ##
+
+    if not Validacion.datos_necesarios(correo, usuario, contrasena):
         return jsonify({"error": "Hacen falta datos."}), 400
     
-    # Se verifica que el correo tenga el formato correcto.
-    if not formato_correo(correo):
+    if not Validacion.formato_correo(correo):
         return jsonify({"error": "El correo ingresado no es válido."}), 400
 
-    # Se verifica que la contraseña cumpla con el formato correcto.
-    if not formato_contrasena(contrasena):
+    if not Validacion.formato_contrasena(contrasena):
         return jsonify({"error": "La contraseña debe contener al menos 8 caracteres, una letra mayúscula, un número y un carácter especial."}), 400
 
-    # Busca si el correo ingresado se encuentra registrado.
-    existe_correo = Usuario.query.filter_by(correo_usuario=correo).first()
+    usuario_encontrado = Usuario.consulta_por_correo(correo)
     
-    # Se verifica que no haya una cuenta registrada con el mismo correo.
-    if existe_correo is not None:
+    if not Validacion.valor_nulo(usuario_encontrado):
         return jsonify({"error": "Ya existe el correo ingresado."}), 404
     
-    # Busca si el usuario ingresado se encuentra registrado.
-    existe_usuario = Usuario.query.filter_by(usuario=usuario).first()
-
-    # Se verifica que no haya una cuenta registrada con el mismo usuario.
-    if existe_usuario is not None:
+    usuario_encontrado = Usuario.consulta_por_usuario(usuario)
+    
+    if not Validacion.valor_nulo(usuario_encontrado):
         return jsonify({"error": "Ya existe el usuario ingresado."}), 404
-
+    
+    
+    
     # Busca el tipo de usuario que pertenece el usuario.
     tipo_usuario = TipoUsuario.query.filter_by(tipo_usuario="Usuario registrado").first()    
+    
     
     # Se manda a llamar el modelo Usuario para crear un nuevo usuario.
     nuevo_usuario = Usuario(

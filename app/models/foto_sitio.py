@@ -1,9 +1,7 @@
 from app import db
 from flask import current_app
-from PIL import Image
-import os, uuid
-from werkzeug.utils import secure_filename
 from .sitio import Sitio
+import os
 
 class FotoSitio(db.Model):
     """
@@ -21,6 +19,7 @@ class FotoSitio(db.Model):
     
     sitio = db.relationship('Sitio', backref='fotos_sitio')
     
+    ## Hay que modificarlo
     @staticmethod
     def guardar_imagen(foto, cve_sitio):
         """
@@ -40,24 +39,13 @@ class FotoSitio(db.Model):
         if sitio is None:
             return 'Sitio no válido', 400
         
+        
+        
         # Se verifica que se haya seleccionado un archivo.
-        if foto.filename == '':
+        if foto.filename == '' or foto is None:
             return 'No se seleccionó ninguna foto.', 400
         
-        # Verifica que el archivo tenga una extensión válida.
-        if foto and FotoSitio.verificar_extension(foto.filename):
-            
-            # Verifica que el tamaño de la fotografía no exceda a 1MB
-            if not FotoSitio.tamaño_permitido(len(foto.read())):
-                return 'Foto demasiada pesada.', 400
-            foto.seek(0) # Resetea el puntero
-            
-            if not FotoSitio.validar_imagen(foto):
-                return 'El archivo no es una imagen válida.', 400
-            foto.seek(0) # Resetea el puntero
-            
-            filename = secure_filename(foto.filename)
-            nombre_unico = str(uuid.uuid4()) + "_" + filename # Se le añade un UUID al nombre del archivo.
+         # Se le añade un UUID al nombre del archivo.
             
             foto.save(os.path.join(current_app.config['IMG_SITIOS'], nombre_unico)) # Se almacena la foto en el path especificado.
             ruta_foto = os.path.join(current_app.config['IMG_SITIOS'], nombre_unico) # Se obtiene el path donde se guardó la foto.
@@ -137,20 +125,5 @@ class FotoSitio(db.Model):
             return 'No se encontraron fotos para este sitio.'
     
     
-    def verificar_extension(filename):
-        extensiones_validas = {'png', 'jpg', 'jpeg', 'gif'}
-        return '.' in filename and filename.rsplit('.', 1)[1].lower() in extensiones_validas
-        
-    def tamaño_permitido(tamaño_imagen):
-        tamaño_maximo = 1 * 1024 * 1024 # 1 Mb
-        if tamaño_maximo > tamaño_imagen:
-            return True
-        return False
-        
-    def validar_imagen(foto):
-        try:
-            Image.open(foto.stream) # Intenta abrir la imagen.
-            return True
-        except:
-            return False
+    
         

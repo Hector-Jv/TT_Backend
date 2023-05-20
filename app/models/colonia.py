@@ -9,7 +9,7 @@ class Colonia(db.Model):
     
     def to_dict(self):
         """
-        Método para convertir el objeto de la colonia a un diccionario.
+        Convertir el objeto de la colonia a un diccionario.
 
         Retorno:
             dict: Diccionario que representa la colonia.
@@ -20,73 +20,131 @@ class Colonia(db.Model):
             'cve_delegacion': self.cve_delegacion
         }
 
-    def guardar(self):
+    @staticmethod
+    def agregar_colonia(nombre_colonia, cve_delegacion):
         """
-        Método para guardar una colonia en la base de datos.
+        Agregar una nueva colonia a la base de datos.
 
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP.
-        """
-        db.session.add(self)
-        db.session.commit()
-        return 'Colonia guardada', 200
+        Entrada:
+            nombre_colonia (str): Nombre que va a tener la colonia.
+            cve_delegacion (int): Clave de la delegación a la que pertenece la colonia.
+            
+        Retorno exitoso:
+            True: Se a guardado correctamente la colonia.
         
-    def eliminar(self):
+        Retorno fallido:
+            False: Hubo algún problema y no se pudo guardar la colonia.
         """
-        Método para eliminar una colonia de la base de datos.
-
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP.
-        """
-        db.session.delete(self)
-        db.session.commit()
-        return 'Colonia eliminada.', 201
+        if Colonia.obtener_colonia_por_nombre(nombre_colonia):
+            return False
         
-    @classmethod
-    def obtener_colonia_por_id(cls, id):
-        """
-        Método de clase para obtener una colonia por su ID.
-
-        Argumentos:
-            id (int): ID de la colonia a buscar.
-
-        Retorno:
-            Colonia: La colonia buscada o None si no se encuentra.
-        """
-        return cls.query.get(id)
+        try:
+            colonia = Colonia(
+                nombre_colonia = nombre_colonia,
+                cve_delegacion = cve_delegacion
+            )
+            db.session.add(colonia)
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error en función agregar_colonia: ", e)
+            return False
     
-    @classmethod
-    def obtener_colonias(cls):
+    @staticmethod
+    def eliminar_colonia(cve_colonia):
         """
-        Método de clase para obtener todas las colonias.
+        Eliminar una colonia de la base de datos.
 
-        Retorno:
-            list: Lista de todas las colonias.
+        Entrada:
+            cve_colonia (int): Clave que hace referencia a la colonia que se desea eliminar.
+            
+        Retorno exitoso:
+            True: Se a eliminado correctamente la colonia.
+        
+        Retorno fallido:
+            False: No se pudo eliminar la colonia.
         """
-        return cls.query.all()
+        try:
+            colonia = Colonia.obtener_colonia_por_id(cve_colonia)
+            if colonia:
+                db.session.delete(colonia)
+                db.session.commit()
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Hubo un error en función eliminar_colonia: ", e)
+            return False
+        
+    @staticmethod
+    def obtener_colonia_por_cve(cve_colonia):
+        """
+        Obtener una colonia por su clave.
+
+        Entrada:
+            clave (int): Clave de la colonia a buscar.
+
+        Retorno exitoso:
+            dict: Diccionario con los datos de la colonia buscada.
+        
+        Retorno fallido:
+            None: No se encontró ninguna colonia con esa clave.
+        """
+        try:
+            colonia = Colonia.query.get(cve_colonia)
+            if colonia:
+                return colonia.to_dict()
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error en función obtener_colonia_por_cve: ", e)
+            return None
     
-    @classmethod
-    def obtener_colonia_por_nombre(cls, nombre):
+    @staticmethod
+    def obtener_colonia_por_nombre(nombre):
         """
-        Método de clase para obtener una colonia por su nombre.
+        Obtener una colonia por su nombre.
 
-        Argumentos:
+        Entrada:
             nombre (str): Nombre de la colonia a buscar.
 
-        Retorno:
-            Colonia: La colonia buscada o None si no se encuentra.
+        Retorno exitoso:
+            dict: Diccionario con los datos de la colonia encontrada.
+            
+        Retorno fallido:
+            None: No se encontró los datos de la colonia ingresada.
         """
-        return cls.query.filter_by(nombre_colonia=nombre).first()
+        try:
+            colonia = Colonia.query.filter_by(nombre_colonia=nombre).first()
+            if colonia:
+                return colonia.to_dict()
+            else:
+                None
+        except Exception as e:
+            print("Hubo un error en función obtener_colonia_por_nombre: ", e)
+            return None
     
-    @classmethod
-    def obtener_colonias_de_delegacion(cls, id_delegacion):
+    @staticmethod
+    def obtener_colonias_de_delegacion(id_delegacion):
         """
-        Método de clase para obtener todas las colonias de una delegación.
+        Obtener todas las colonias de una delegación.
 
-        Argumentos:
+        Entrada:
             id_delegacion (int): ID de la delegación cuyas colonias se quieren buscar.
 
-        Retorno:
+        Retorno exitoso:
             list: Lista de las colonias de la delegación buscada.
+            
+        Retorno fallido:
+            None: Si no hay colonias con el cve_delegacion ingresado.
+            
         """
-        return cls.query.filter_by(cve_delegacion=id_delegacion).all()
+        try:
+            colonias = Colonia.query.filter_by(cve_delegacion=id_delegacion).all()
+            if colonias:
+                return [colonia.to_dict() for colonia in colonias]
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error en función obtener_colonias_de_delegacion", e)
+            return None

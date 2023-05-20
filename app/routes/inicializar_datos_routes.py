@@ -38,6 +38,7 @@ def inicializar_datos_bd():
     Delegacion.agregar_delegacion("Venustiano Carranza")
     Delegacion.agregar_delegacion("Xochimilco")
     
+    
     return jsonify({"mensaje": "Datos inicializados."}), 200
     
     

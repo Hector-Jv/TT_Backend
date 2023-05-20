@@ -14,24 +14,48 @@ class ServicioHotel(db.Model):
             ['servicio.cve_servicio'],
         ),
     )
+    
+    def to_dict(self):
+        """
+        Convertir el objeto ServicioHotel a un diccionario.
 
-    def __init__(self, cve_sitio, cve_servicio):
+        Retorno:
+            dict: Diccionario que representa el ServicioHotel.
         """
-        Método para inicializar una relación entre un sitio y un servicio.
+        return {
+            'cve_sitio': self.cve_sitio,
+            'cve_servicio': self.cve_servicio
+        }
 
-        Argumentos:
-            cve_sitio (int): Clave del sitio.
-            cve_servicio (int): Clave del servicio.
+    @staticmethod
+    def agregar_relacion(cve_servicio, cve_sitio):
         """
-        self.cve_sitio = cve_sitio
-        self.cve_servicio = cve_servicio
+        Agregar una nueva relación entre un servicio y una hotel.
 
-    def agregar_relacion(self):
+        Entrada:
+            cve_sitio (int): Clave del sitio a relacionar.
+            cve_servicio (int): Clave del servicio a relacionar.
+
+        Retorno exitoso:
+            True: Se ha agregado una nueva relación a la base de datos.
+            
+        Retorno fallido:
+            False: Existe ya una relación o hubo un error.
         """
-        Método para agregar una nueva relación a la base de datos.
-        """
-        db.session.add(self)
-        db.session.commit()
+        try:
+            if ServicioHotel.existe_relacion_servicio_y_hotel(cve_servicio=cve_servicio, cve_sitio=cve_sitio):
+                return False
+            
+            nueva_relacion = ServicioHotel(
+                cve_sitio=cve_sitio, 
+                cve_servicio=cve_servicio
+            )
+            db.session.add(nueva_relacion)
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
 
     def eliminar_relacion(self):
         """
@@ -128,3 +152,27 @@ class ServicioHotel(db.Model):
             return 'Debes proporcionar al menos una clave', 400
 
         return [{'cve_sitio': relacion.cve_sitio, 'cve_servicio': relacion.cve_servicio} for relacion in relaciones], 200
+    
+    @staticmethod
+    def existe_relacion_servicio_y_hotel(cve_servicio, cve_sitio):
+        """
+        Verifica si hay una relación entre un servicio y un sitio.
+
+        Entrada:
+            cve_servicio (int): Clave del servicio a consultar.
+            cve_sitio (int): Clave del sitio a consultar.
+
+        Retorno exitoso:
+            True: Existe una relación.
+        
+        Retorno fallido:
+            False: No existe una relación.
+        """
+        try:
+            if ServicioHotel.query.filter_by(cve_sitio=cve_sitio, cve_servicio=cve_servicio).first():
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False

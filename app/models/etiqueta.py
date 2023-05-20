@@ -1,28 +1,51 @@
 from app import db
 from sqlalchemy.exc import IntegrityError
+from app.classes.validacion import Validacion
 
 class Etiqueta(db.Model):
     cve_etiqueta = db.Column(db.Integer, primary_key=True)
     nombre_etiqueta = db.Column(db.String(100), nullable=False, unique=True)
 
-    def agregar_etiqueta(cls, nombre_etiqueta):
+    def to_dict(self):
         """
-        Método para agregar una nueva etiqueta.
-
-        Argumentos:
-            nombre_etiqueta (str): Nombre de la etiqueta a agregar.
+        Convertir el objeto del etiqueta a un diccionario.
 
         Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
+            dict: Diccionario que representa la etiqueta.
+        """
+        return {
+            'cve_etiqueta': self.cve_etiqueta,
+            'nombre_etiqueta': self.nombre_etiqueta
+        }
+
+
+    @staticmethod
+    def agregar_etiqueta(nombre_etiqueta):
+        """
+        Agregar una nueva etiqueta.
+
+        Entrada:
+            nombre_etiqueta (str): Nombre de la etiqueta a agregar.
+
+        Retorno exitoso:
+            True: Se ha agregado la etiqueta a la base de datos.
+        
+        Retorno fallido:
+            False: Hubo un problema o ya existe.
         """
         try:
-            nueva_etiqueta = cls(nombre_etiqueta=nombre_etiqueta)
+            etiqueta_encontrada = Etiqueta.obtener_etiqueta_por_nombre(nombre_etiqueta)
+            
+            if not Validacion.valor_nulo(etiqueta_encontrada):
+                return False
+            
+            nueva_etiqueta = Etiqueta(nombre_etiqueta=nombre_etiqueta)
             db.session.add(nueva_etiqueta)
             db.session.commit()
-            return 'Etiqueta agregada con éxito', 200
-        except IntegrityError:
-            db.session.rollback()
-            return 'La etiqueta ya existe', 400
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
 
     def eliminar_etiqueta(cls, cve_etiqueta):
         """
@@ -100,20 +123,25 @@ class Etiqueta(db.Model):
         } for etiqueta in etiquetas], 200
 
     @staticmethod
-    def consultar_etiqueta_por_nombre(nombre_etiqueta):
+    def obtener_etiqueta_por_nombre(nombre_etiqueta):
         """
-        Método para consultar una etiqueta específica por su nombre.
+        Obtener etiqueta por su nombre.
 
-        Argumentos:
+        Entrada:
             nombre_etiqueta (str): El nombre de la etiqueta a consultar.
 
-        Retorno:
-            dict, int: Diccionario con los datos de la etiqueta y código de estado HTTP, o un mensaje de error y código de estado HTTP.
+        Retorno exitoso:
+            dict: Diccionario con los datos de la etiqueta.
+            
+        Retorno fallido:
+            None: No se encontró la etiqueta o hubo un error.
         """
-        etiqueta = Etiqueta.query.filter_by(nombre_etiqueta=nombre_etiqueta).first()
-        if etiqueta:
-            return {
-                'cve_etiqueta': etiqueta.cve_etiqueta,
-                'nombre_etiqueta': etiqueta.nombre_etiqueta
-            }, 200
-        return 'Etiqueta no encontrada', 404
+        try:
+            etiqueta_encontrada = Etiqueta.query.filter_by(nombre_etiqueta=nombre_etiqueta).first()
+            if etiqueta_encontrada:
+                return etiqueta_encontrada.to_dict()
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None

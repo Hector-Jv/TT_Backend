@@ -4,7 +4,7 @@ from .calificacion import Calificacion
 from .colonia import Colonia
 from .comentario import Comentario
 from .delegacion import Delegacion
-from .etiqueta_tipo_sitio import EtiquetaTipoSitio
+# from .etiqueta_tipo_sitio import EtiquetaTipoSitio
 from .etiqueta import Etiqueta
 from .foto_comentario import FotoComentario
 from .foto_sitio import FotoSitio

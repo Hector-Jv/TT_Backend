@@ -16,28 +16,49 @@ class SitioEtiqueta(db.Model):
         ),
     )
 
-    @classmethod
-    def agregar_relacion(cls, cve_sitio, cve_etiqueta):
+    def to_dict(self):
         """
-        Método para agregar una nueva relación entre un sitio y una etiqueta.
+        Convertir el objeto del SitioEtiqueta a un diccionario.
 
-        Argumentos:
+        Retorno:
+            dict: Diccionario que representa el SitioEtiqueta.
+        """
+        return {
+            'cve_sitio': self.cve_sitio,
+            'cve_etiqueta': self.cve_etiqueta
+        }
+
+    @staticmethod
+    def agregar_relacion(cve_sitio, cve_etiqueta):
+        """
+        Agregar una nueva relación entre un sitio y una etiqueta.
+
+        Entrada:
             cve_sitio (int): Clave del sitio a relacionar.
             cve_etiqueta (int): Clave de la etiqueta a relacionar.
 
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
+        Retorno exitoso:
+            True: Se ha agregado una nueva relación a la base de datos.
+            
+        Retorno fallido:
+            False: Existe ya una relación o hubo un error.
         """
         try:
-            nueva_relacion = cls(cve_sitio=cve_sitio, cve_etiqueta=cve_etiqueta)
+            if SitioEtiqueta.existe_relacion_etiqueta_y_sitio(cve_etiqueta=cve_etiqueta, cve_sitio=cve_sitio):
+                return False
+            
+            nueva_relacion = SitioEtiqueta(
+                cve_sitio=cve_sitio, 
+                cve_etiqueta=cve_etiqueta
+            )
             db.session.add(nueva_relacion)
             db.session.commit()
-            return 'Relación agregada con éxito', 200
-        except IntegrityError:
-            db.session.rollback()
-            return 'La relación ya existe', 400
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
 
-    @classmethod
+    @staticmethod
     def eliminar_relacion(cls, cve_sitio, cve_etiqueta):
         """
         Método para eliminar una relación entre un sitio y una etiqueta.
@@ -72,15 +93,50 @@ class SitioEtiqueta(db.Model):
         return [{'cve_sitio': relacion.cve_sitio, 'cve_etiqueta': relacion.cve_etiqueta} for relacion in relaciones], 200
 
     @staticmethod
-    def consultar_relaciones_por_etiqueta(cve_etiqueta):
+    def obtener_relaciones_por_cveetiqueta(cve_etiqueta):
         """
-        Método para consultar todas las relaciones de una etiqueta por su clave.
+        Obtener todas las relaciones de una etiqueta por su clave.
 
-        Argumentos:
+        Entrada:
             cve_etiqueta (int): Clave de la etiqueta a consultar.
 
-        Retorno:
-            list, int: Lista de diccionarios con las claves de los sitios relacionados y código de estado HTTP.
+        Retorno exitoso:
+            list: Lista de diccionarios con las claves de los sitios relacionados.
+        
+        Retorno fallido:
+            None: No se encontraron relaciones o hubo un error.
         """
-        relaciones = SitioEtiqueta.query.filter_by(cve_etiqueta=cve_etiqueta).all()
-        return [{'cve_sitio': relacion.cve_sitio, 'cve_etiqueta': relacion.cve_etiqueta} for relacion in relaciones], 200
+        try:
+            relaciones_encontradas_sitioetiqueta = SitioEtiqueta.query.filter_by(cve_etiqueta=cve_etiqueta).all()
+            if relaciones_encontradas_sitioetiqueta:
+                return [relacion.to_dict for relacion in relaciones_encontradas_sitioetiqueta]
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
+        
+    @staticmethod
+    def existe_relacion_etiqueta_y_sitio(cve_etiqueta, cve_sitio):
+        """
+        Verifica si hay una relación de una etiqueta y un sitio.
+
+        Entrada:
+            cve_etiqueta (int): Clave de la etiqueta a consultar.
+            cve_sitio (int): Clave del sitio a consultar.
+
+        Retorno exitoso:
+            True: Existe una relación.
+        
+        Retorno fallido:
+            False: No existe una relación.
+        """
+        try:
+            if SitioEtiqueta.query.filter_by(cve_sitio=cve_sitio, cve_etiqueta=cve_etiqueta).first():
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+            

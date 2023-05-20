@@ -1,36 +1,50 @@
 from app import db
 from .servicio_hotel import ServicioHotel
+from app.classes.validacion import Validacion
 
 class Servicio(db.Model):
     cve_servicio = db.Column(db.Integer, primary_key=True)
     nombre_servicio = db.Column(db.String(100), nullable=False)
     
-    def __init__(self, nombre_servicio):
+    def to_dict(self):
         """
-        Método para inicializar un servicio.
-
-        Argumentos:
-            nombre_servicio (str): Nombre del servicio.
-        """
-        self.nombre_servicio = nombre_servicio
-    
-    def agregar_servicio(self, nombre_servicio):
-        """
-        Método para agregar un nuevo servicio a la base de datos.
-
-        Argumentos:
-            nombre_servicio (str): Nombre del nuevo servicio.
+        Convertir el objeto del Servicio a un diccionario.
 
         Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP, o mensaje de error y código de estado HTTP.
+            dict: Diccionario que representa el Servicio.
         """
-        servicio = Servicio.query.filter_by(nombre_servicio=nombre_servicio).first()
-        if servicio:
-            return 'Ya existe un servicio con ese nombre', 400
-        nuevo_servicio = Servicio(nombre_servicio=nombre_servicio)
-        db.session.add(nuevo_servicio)
-        db.session.commit()
-        return 'Servicio agregado con éxito', 200
+        return {
+            'cve_servicio': self.cve_servicio,
+            'nombre_servicio': self.nombre_servicio
+        }
+    
+    @staticmethod
+    def agregar_servicio(nombre_servicio):
+        """
+        Agregar un nuevo servicio a la base de datos.
+
+        Entrada:
+            nombre_servicio (str): Nombre del nuevo servicio.
+
+        Retorno exitoso:
+            True: Se ha agregado con exito a la base de datos.
+            
+        Retorno fallido:
+            False: Ya existe o hubo un error.
+        """
+        try:
+            servicio_encontrado = Servicio.obtener_servicio_por_nombre(nombre_servicio)
+        
+            if not Validacion.valor_nulo(servicio_encontrado):
+                return False
+            
+            nuevo_servicio = Servicio(nombre_servicio=nombre_servicio)
+            db.session.add(nuevo_servicio)
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
     
     def eliminar_servicio(self):
         """
@@ -55,36 +69,52 @@ class Servicio(db.Model):
         db.session.commit()
     
     @staticmethod
-    def consultar_por_nombre(nombre_servicio):
+    def obtener_servicio_por_nombre(nombre_servicio):
         """
-        Método estático para consultar un servicio por su nombre.
+        Obtener un servicio por su nombre.
 
-        Argumentos:
+        Entrada:
             nombre_servicio (str): Nombre del servicio a buscar.
 
-        Retorno:
-            dict, int: Diccionario con los datos del servicio y código de estado HTTP, o mensaje de error y código de estado HTTP.
+        Retorno exitoso:
+            dict: Diccionario con los datos del servicio.
+            
+        Retorno fallido:
+            None: No se encontró el servicio o hubo un error.
         """
-        servicio = Servicio.query.filter_by(nombre_servicio=nombre_servicio).first()
-        if servicio:
-            return {'cve_servicio': servicio.cve_servicio, 'nombre_servicio': servicio.nombre_servicio}, 200
-        return 'Servicio no encontrado', 404
+        try:
+            servicio = Servicio.query.filter_by(nombre_servicio=nombre_servicio).first()
+            if servicio:
+                return servicio.to_dict()
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
     
     @staticmethod
-    def consultar_por_cve(cve_servicio):
+    def obtener_servicio_por_cve(cve_servicio):
         """
-        Método estático para consultar un servicio por su clave.
+        Obtener un servicio por su clave.
 
-        Argumento:
+        Entrada:
             cve_servicio (int): Clave del servicio a buscar.
 
-        Retorno:
-            dict, int: Diccionario con los datos del servicio y código de estado HTTP, o mensaje de error y código de estado HTTP.
+        Retorno exitoso:
+            dict: Diccionario con los datos del servicio.
+            
+        Retorno fallido:
+            None: No se encontró el servicio o hubo un error.
         """
-        servicio = Servicio.query.get(cve_servicio)
-        if servicio:
-            return {'cve_servicio': servicio.cve_servicio, 'nombre_servicio': servicio.nombre_servicio}, 200
-        return 'Servicio no encontrado', 404
+        try:
+            servicio = Servicio.query.get(cve_servicio)
+            if servicio:
+                return servicio.to_dict()
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
 
     @staticmethod
     def consultar_todos_los_servicios():

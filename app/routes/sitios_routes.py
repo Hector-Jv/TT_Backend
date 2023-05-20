@@ -3,28 +3,21 @@ from app import db
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.models import TipoSitio, Sitio, Delegacion, Colonia, Calificacion, Historial, Horario, ServicioHotel, Servicio, SitioEtiqueta, Etiqueta, FotoSitio, Usuario
 
-sitio_bp = Blueprint('sitio', __name__)
+sitios_bp = Blueprint('consultas sitio', __name__)
 
-"""
-Rutas creadas:
-    /inicio [GET]
-    /sitios [GET]
-    /sitios/filtros [GET]
-    /sitios/<nombre sitio> [GET]
-"""
-@sitio_bp.route('/')
+@sitios_bp.route('/')
 def menu():
     return redirect("/inicio")
 
 
-@sitio_bp.route('/inicio', methods=["GET"])
+@sitios_bp.route('/inicio', methods=["GET"])
 def mostrar_tipo_sitios():
     
     lista_tipo_sitios, codigo = TipoSitio.consultar_todos()
     
     return jsonify({"tipo_sitios": lista_tipo_sitios}), codigo
 
-@sitio_bp.route('/sitios', methods=["GET"])
+@sitios_bp.route('/sitios', methods=["GET"])
 def mostrar_sitios():
     
     data = request.get_json()
@@ -71,7 +64,7 @@ def mostrar_sitios():
         "sitios": sitios_ordenados_json}), 200
     
 
-@sitio_bp.route('/sitios/filtros', methods=["GET"])
+@sitios_bp.route('/sitios/filtros', methods=["GET"])
 def mostrar_sitios_con_filtros():
     
     data = request.get_json()
@@ -129,7 +122,7 @@ def mostrar_sitios_con_filtros():
     return jsonify({"Sitios": sitios_ordenados_json}), 200
 
 
-@sitio_bp.route('/sitios/<cve_sitio>', methods=["GET"])
+@sitios_bp.route('/sitios/<cve_sitio>', methods=["GET"])
 def mostrar_info_sitio(cve_sitio):
     
     info_sitio = Sitio.consultar_sitio(cve_sitio)
@@ -175,7 +168,7 @@ def mostrar_info_sitio(cve_sitio):
     return jsonify({"sitio": info_sitio[0]}), 200
 
 ## PENDIENTE
-@sitio_bp.route('/sitio_favorito', methods=["POST"])
+@sitios_bp.route('/sitio_favorito', methods=["POST"])
 @jwt_required()
 def sitio_favorito():
     

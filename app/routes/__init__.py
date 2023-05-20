@@ -1,31 +1,6 @@
-from .sitios_routes import sitio_bp
-"""
-sitio_bp
-    @sitio_bp.route('/')
-    @sitio_bp.route('/inicio', methods=["GET"])
-    @sitio_bp.route('/sitios', methods=["GET"])
-    @sitio_bp.route('/sitios/filtros', methods=["GET"])
-    @sitio_bp.route('/sitios/<cve_sitio>', methods=["GET"])
-    @sitio_bp.route('/sitio_favorito', methods=["POST"])
-"""
-
+from .sitios_routes import sitios_bp
 from .login_routes import login_bp
-"""
-login_bp
-    @login_bp.route('/login', methods=['POST'])
-"""
-
 from .registro_routes import registro_bp
-"""
-registro_bp
-    @registro_bp.route('/registro', methods=['POST'])
-"""
-
 from .usuario_routes import usuario_bp
-"""
-usuario_bp
-    @usuario_bp.route('/usuario', methods=['GET']) @jwt_required()
-    @usuario_bp.route('/admin', methods=['GET']) @jwt_required()
-"""
-
 from .inicializar_datos_routes import inicial_bp
+from .sitio_routes import sitio_bp
