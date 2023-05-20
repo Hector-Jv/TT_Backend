@@ -43,5 +43,6 @@ def create_app(config_class=Config):
     app.register_blueprint(routes.usuario_bp)
     app.register_blueprint(routes.inicial_bp)
     app.register_blueprint(routes.sitio_bp)
+    app.register_blueprint(routes.crud_sitio_bp)
     
     return app 

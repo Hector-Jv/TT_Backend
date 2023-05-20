@@ -4,3 +4,4 @@ from .registro_routes import registro_bp
 from .usuario_routes import usuario_bp
 from .inicializar_datos_routes import inicial_bp
 from .sitio_routes import sitio_bp
+from .crud_sitio_routes import crud_sitio_bp

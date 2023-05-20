@@ -2,60 +2,50 @@ from app import db
 from flask import current_app
 from .sitio import Sitio
 import os
+from app.classes.validacion import Validacion
 
 class FotoSitio(db.Model):
-    """
-    Modelo de base de datos para las fotos asociadas a los sitios.
-
-    Atributos:
-    cve_foto_sitio (int): Clave primaria de la foto.
-    ruta_sitio (str): Ruta donde se almacena la foto.
-    cve_sitio (int): Clave foránea del sitio asociado a la foto.
-    """
-    
     cve_foto_sitio = db.Column(db.Integer, primary_key=True)
     ruta_sitio = db.Column(db.String(500), nullable=False)
+    nombre_imagen = db.Column(db.String(300), nullable=False)
     cve_sitio = db.Column(db.Integer, db.ForeignKey('sitio.cve_sitio'), nullable=False)
     
     sitio = db.relationship('Sitio', backref='fotos_sitio')
     
-    ## Hay que modificarlo
+    
     @staticmethod
-    def guardar_imagen(foto, cve_sitio):
+    def guardar_imagen(ruta_sitio, nombre_imagen, cve_sitio):
         """
-        Guarda una imagen asociada a un sitio en la base de datos.
+        Guarda la ruta de la imagen asociada a un sitio en la base de datos.
 
-        Args:
-        foto (werkzeug.datastructures.FileStorage): El archivo de imagen a guardar.
+        Entrada:
+        ruta_sitio (str): Ruta de la imagen
+        nombre_imagen (str): Nombre de la imagen
         cve_sitio (int): La clave del sitio asociado a la imagen.
 
-        Returns:
-        str: Un mensaje indicando si la operación fue exitosa o no.
-        int: Un código de estado HTTP indicando si la operación fue exitosa o no.
+        Retorno exitoso:
+            True: Se guardo correctamente.
+        
+        Retorno fallido:
+            False: Hubo un error.
         """
-        
-        # Verifica que cve_sitio exista (hay que crear la función en Sitio e invocarla aqui).
-        sitio = Sitio.query.get(cve_sitio)
-        if sitio is None:
-            return 'Sitio no válido', 400
-        
-        
-        
-        # Se verifica que se haya seleccionado un archivo.
-        if foto.filename == '' or foto is None:
-            return 'No se seleccionó ninguna foto.', 400
-        
-         # Se le añade un UUID al nombre del archivo.
+        try:
+            sitio_encontrado = Sitio.obtener_sitio_por_cve(cve_sitio)
             
-            foto.save(os.path.join(current_app.config['IMG_SITIOS'], nombre_unico)) # Se almacena la foto en el path especificado.
-            ruta_foto = os.path.join(current_app.config['IMG_SITIOS'], nombre_unico) # Se obtiene el path donde se guardó la foto.
-            
-            foto_sitio = FotoSitio(ruta_sitio=ruta_foto, cve_sitio=cve_sitio) # Se crea el objeto FotoComentario.
-            db.session.add(foto_sitio) # Se añade el objeto a la sesión.
-            db.session.commit() #Se aplican los cambios.
-            return 'Foto guardada exitosamente', 200
-
-        return 'Archivo no válido', 400
+            if Validacion.valor_nulo(sitio_encontrado):
+                return False
+        
+            foto_nueva = FotoSitio(
+                ruta_sitio = ruta_sitio,
+                nombre_imagen = nombre_imagen,
+                cve_sitio = cve_sitio
+            )
+            db.session.add(foto_nueva)
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error en la funcion guardar_imagen: ", e)
+            return False
     
     
     @staticmethod
