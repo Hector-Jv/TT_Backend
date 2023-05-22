@@ -111,4 +111,4 @@ def registrar_usuario():
 
     usuario_encontrado: Usuario = Usuario.obtener_usuario_por_correo(correo)
     
-    return jsonify({"usuario": usuario_encontrado.usuario, "correo_usuario": usuario_encontrado.correo_usuario}),  201
+    return jsonify({"usuario": usuario_encontrado.usuario, "correo_usuario": usuario_encontrado.correo_usuario, "mensaje": "Te has registrado con exito"}),  201
