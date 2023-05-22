@@ -12,6 +12,19 @@ class FotoSitio(db.Model):
     
     sitio = db.relationship('Sitio', backref='fotos_sitio')
     
+    def to_dict(self):
+        """
+        Convertir el objeto FotoSitio a un diccionario.
+
+        Retorno:
+            dict: Diccionario que representa FotoSitio.
+        """
+        return {
+            'cve_foto_sitio': self.cve_foto_sitio,
+            'ruta_sitio': self.ruta_sitio,
+            'nombre_imagen': self.nombre_imagen,
+            'cve_sitio': self.cve_sitio
+        }
     
     @staticmethod
     def guardar_imagen(ruta_sitio, nombre_imagen, cve_sitio):
@@ -47,73 +60,58 @@ class FotoSitio(db.Model):
             print("Hubo un error en la funcion guardar_imagen: ", e)
             return False
     
-    
-    @staticmethod
-    def obtener_fotos_por_sitio(cve_sitio):
-        """
-        Obtiene las fotos asociadas a un sitio en particular.
-
-        Args:
-        cve_sitio (int): La clave del sitio asociado a las imágenes.
-        
-        Returns:
-        list: Una lista de las rutas de las fotos asociadas al sitio.
-        """
-        
-        fotos_sitio = FotoSitio.query.filter_by(cve_sitio=cve_sitio).all()
-
-        if fotos_sitio:
-            return [foto.ruta_sitio for foto in fotos_sitio]
-        else:
-            return []
-    
-    
     @staticmethod
     def eliminar_foto(cve_foto_sitio):
         """
         Elimina una foto específica.
 
-        Args:
-        cve_foto_sitio (int): La clave de la foto a eliminar.
+        Entrada:
+            cve_foto_sitio (int): La clave de la foto a eliminar.
 
-        Returns:
-        str: Un mensaje indicando si la eliminación fue exitosa o no.
-        """
+        Retorno exitoso:
+            True: Se elimino correctamente.
         
-        foto = FotoSitio.query.get(cve_foto_sitio)
+        Retorno fallido:
+            False: Hubo un error
+        """
+        try:
+            fotositio_encontrado = FotoSitio.query.get(cve_foto_sitio)
+            
+            if Validacion.valor_nulo(fotositio_encontrado):
+                return False
 
-        if foto:
-            os.remove(os.path.join(current_app.config['IMG_SITIOS'], foto.ruta_sitio))  # Elimina la foto del sistema de archivos.
-            db.session.delete(foto)
+            db.session.delete(fotositio_encontrado)
             db.session.commit()
-            return 'Foto eliminada exitosamente.'
-        else:
-            return 'Foto no encontrada.'
-    
-    
+            return True
+        
+        except Exception as e:
+            print("Hubo un error: ",e)
+            return False
+
     @staticmethod
-    def eliminar_fotos_sitio(cve_sitio):
+    def obtener_fotositio_por_cve(cve_foto_sitio):
         """
-        Elimina todas las fotos asociadas a un sitio específico.
+        Obtiene las fotos asociadas a un sitio en particular.
 
-        Args:
-        cve_sitio (int): La clave del sitio asociado a las imágenes.
-
-        Returns:
-        str: Un mensaje indicando si la eliminación fue exitosa o no.
+        Entrada:
+            cve_foto_sitio (int): La clave del sitio asociado a las imágenes.
+        
+        Retorno exitoso:
+            FotoSitio: Instancia de tipo FotoSitio.
+            
+        Retorno fallido:
+            None: Hubo un error o no se encuentra.
         """
-        
-        fotos = FotoSitio.query.filter_by(cve_sitio=cve_sitio).all()
+        try:
+            fotositio_encontrado = FotoSitio.query.get(cve_foto_sitio)
+            
+            if Validacion.valor_nulo(fotositio_encontrado):
+                return None
+            
+            return fotositio_encontrado
 
-        if fotos:
-            for foto in fotos:
-                os.remove(os.path.join(current_app.config['IMG_SITIOS'], foto.ruta_sitio))
-                db.session.delete(foto)
-            db.session.commit()
-            return 'Fotos eliminadas exitosamente.'
-        else:
-            return 'No se encontraron fotos para este sitio.'
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
     
     
-    
-        

@@ -2,48 +2,62 @@ from flask import Blueprint, jsonify, redirect, request
 from app import db
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.models import TipoSitio, Sitio, Delegacion, Colonia, Calificacion, Historial, Horario, ServicioHotel, Servicio, SitioEtiqueta, Etiqueta, FotoSitio, Usuario
+from app.classes.validacion import Validacion
 
-sitios_bp = Blueprint('consultas sitio', __name__)
-
-@sitios_bp.route('/')
-def menu():
-    return redirect("/inicio")
-
-
-@sitios_bp.route('/inicio', methods=["GET"])
-def mostrar_tipo_sitios():
-    
-    lista_tipo_sitios, codigo = TipoSitio.consultar_todos()
-    
-    return jsonify({"tipo_sitios": lista_tipo_sitios}), codigo
+sitios_bp = Blueprint('consulta sitios', __name__)
 
 @sitios_bp.route('/sitios', methods=["GET"])
 def mostrar_sitios():
     
-    data = request.get_json()
+    ## Se obtienen los datos ##
     
+    data = request.get_json()
     tipo_sitio = data.get("cve_tipo_sitio")
     opcion_ordenamiento = request.get("ordenamiento", default=1)
 
+    ## Se busca la información ##
     
-    lista_tipo_sitios, codigo = TipoSitio.consultar_todos()
-    if codigo == 404:
-        return jsonify({"Mensaje": "No se encontraron los tipos de sitios."}), 404
+    lista_sitios_encontrados = Sitio.obtener_sitios_por_tipositio(int(tipo_sitio))
+    
+    lista_sitios_dict = []
+    
+    for sitio in lista_sitios_encontrados:
+        tipo_sitio_encontrado = TipoSitio.obtener_tipositio_por_cve(sitio.tipo_sitio)
+        colonia_encontrada = Colonia.obtener_colonia_por_cve(sitio.cve_colonia)
+        delegacion_encontrada = Delegacion.obtener_delegacion_por_cve(colonia_encontrada.cve_delegacion)
+        fotositio_encontrada = FotoSitio.obtener_fotositio_por_cve(sitio.cve_sitio)
+        
+        historiales = Historial.obtener_historiales_por_sitio(sitio.cve_sitio)
+        
+        ## Se obtiene el número de visitas ##
+        visitas = len(historiales)
+        
+        ## Se obtiene la calificacion promedio de cada sitio ##
+        suma = 0
+        num_calificaciones = 0
+        promedio = None
+        for historial in historiales:
+            calificacion_encontrada = Calificacion.obtener_calificacion_por_historial(historial.cve_historial)
+            if Validacion.valor_nulo(calificacion_encontrada):
+                continue
+            else:
+                suma += calificacion_encontrada.calificacion_general
+                num_calificaciones += 1
+        
+        if not num_calificaciones == 0:
+            promedio = suma / num_calificaciones
+        
+        sitio_dict = sitio.to_dict()
+        sitio_dict["tipo_sitio"] = tipo_sitio_encontrado.tipo_sitio
+        sitio_dict["colonia"] = colonia_encontrada.nombre_colonia
+        sitio_dict["delegacion"] = delegacion_encontrada.nombre_delegacion
+        sitio_dict["num_visitas"] = visitas
+        sitio_dict["calificacion"] = promedio
+        sitio_dict["foto"] = fotositio_encontrada.ruta_sitio
+        
+        lista_sitios_dict.append(sitio_dict)
 
-    lista_delegaciones, codigo = Delegacion.mostrar_todos()
-    if codigo == 404:
-        return jsonify({"Mensaje": "No se encontraron las delegaciones."}), 404
-    
-    lista_sitios, codigo = Sitio.consultar_sitios_por_tipo(tipo_sitio)
-    nombre_tipo_sitio = TipoSitio.consultar_por_cve(tipo_sitio)
-    if codigo == 404:
-        return jsonify({"Mensaje": f"No se encontraron sitios de tipo {nombre_tipo_sitio[0]['tipo_sitio']}."}), 404
-    
-    for sitio in lista_sitios:
-        colonia_sitio = Colonia.obtener_colonia_por_id(sitio["cve_colonia"])
-        sitio["delegacion"] = Delegacion.buscar_por_cve(colonia_sitio.to_dict()["cve_delegacion"])[0]["nombre_delegacion"]
-        sitio["colonia"] = colonia_sitio.to_dict()["nombre_colonia"]
-    
+    """
     # Ordenar los datos.
     if opcion_ordenamiento == 1: # Ordenamiento por calificacion (por defecto)
         sitios_ordenados = sorted(lista_sitios, key=lambda sitio: sitio.calificacion_general, reverse=True)
@@ -57,12 +71,23 @@ def mostrar_sitios():
         return jsonify({"error": "No existe el ordenamiento especificado."}), 400
 
     sitios_ordenados_json = [sitio.to_dict() for sitio in sitios_ordenados]
-
-    return jsonify({
-        "tipo_sitios": lista_tipo_sitios,
-        "delegaciones": lista_delegaciones,
-        "sitios": sitios_ordenados_json}), 200
+    """
     
+    return jsonify(lista_sitios_dict), 200
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @sitios_bp.route('/sitios/filtros', methods=["GET"])
 def mostrar_sitios_con_filtros():

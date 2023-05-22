@@ -46,28 +46,67 @@ class Servicio(db.Model):
             print("Hubo un error: ", e)
             return False
     
-    def eliminar_servicio(self):
+    @staticmethod
+    def eliminar_servicio(cve_servicio):
         """
-        Método para eliminar un servicio de la base de datos.
-        Antes de eliminar, verifica si existen relaciones en ServicioHotel.
+        Eliminar un servicio de la base de datos.
+        
+        Entrada:
+            cve_servicio (int): Clave del servicio.
+            
+        Retorno exitoso:
+            True: Se ha eliminado correctamente.
+        
+        Retorno fallido:
+            False: Hubo un error.
         """
-        relaciones = ServicioHotel.consultar_por_cve_servicio(self.cve_servicio)
-        if relaciones:
-            return 'No se puede eliminar el servicio porque tiene relaciones existentes en ServicioHotel', 400
+        try:
+            servicio_encontrado = Servicio.obtener_servicio_por_cve(cve_servicio)
+            
+            if not Validacion.valor_nulo(servicio_encontrado):
+                db.session.delete(servicio_encontrado)
+                db.session.commit()
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+        
+    @staticmethod
+    def modificar_servicio(cve_servicio, nuevo_nombre):
+        """
+        Modificar el nombre de un servicio.
 
-        db.session.delete(self)
-        db.session.commit()
-    
-    def modificar_servicio(self, nuevo_nombre):
-        """
-        Método para modificar el nombre de un servicio.
-
-        Argumentos:
+        Entrada:
+            cve_servicio (int): Clave del servicio a modificar.
             nuevo_nombre (str): Nuevo nombre del servicio.
+            
+        Retorno exitoso:
+            True: Se ha modificado correctamente.
+        
+        Retorno fallido:
+            False: Hubo un problema.
         """
-        self.nombre_servicio = nuevo_nombre
-        db.session.commit()
-    
+        try:
+            
+            servicio_encontrado = Servicio.obtener_servicio_por_nombre(nuevo_nombre)
+            
+            if not Validacion.valor_nulo(servicio_encontrado):
+                return False
+            
+            servicio_encontrado = Servicio.obtener_servicio_por_cve(cve_servicio)
+            
+            if Validacion.valor_nulo(servicio_encontrado):
+                return False
+            
+            servicio_encontrado.nombre_servicio = nuevo_nombre
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+        
     @staticmethod
     def obtener_servicio_por_nombre(nombre_servicio):
         """
@@ -77,15 +116,15 @@ class Servicio(db.Model):
             nombre_servicio (str): Nombre del servicio a buscar.
 
         Retorno exitoso:
-            dict: Diccionario con los datos del servicio.
+            Servicio: Instancia de Servicio.
             
         Retorno fallido:
             None: No se encontró el servicio o hubo un error.
         """
         try:
             servicio = Servicio.query.filter_by(nombre_servicio=nombre_servicio).first()
-            if servicio:
-                return servicio.to_dict()
+            if not Validacion.valor_nulo(servicio):
+                return servicio
             else:
                 return None
         except Exception as e:
@@ -101,15 +140,15 @@ class Servicio(db.Model):
             cve_servicio (int): Clave del servicio a buscar.
 
         Retorno exitoso:
-            dict: Diccionario con los datos del servicio.
+            Servicio: Instancia de Servicio.
             
         Retorno fallido:
             None: No se encontró el servicio o hubo un error.
         """
         try:
             servicio = Servicio.query.get(cve_servicio)
-            if servicio:
-                return servicio.to_dict()
+            if not Validacion.valor_nulo(servicio):
+                return servicio
             else:
                 return None
         except Exception as e:
@@ -117,12 +156,23 @@ class Servicio(db.Model):
             return None
 
     @staticmethod
-    def consultar_todos_los_servicios():
+    def obtener_todos_los_servicios():
         """
-        Método estático para consultar todos los servicios existentes en la base de datos.
+        Obtener todos los servicios existentes en la base de datos.
 
-        Retorno:
-            list, int: Lista de diccionarios con los datos de los servicios y código de estado HTTP.
+        Retorno exitoso:
+            list: Lista de instancias de tipo Servicio.
+            
+        Retorno fallido:
+            None: No se encontraron instancias o hubo un error.
         """
-        servicios = Servicio.query.all()
-        return [{'cve_servicio': servicio.cve_servicio, 'nombre_servicio': servicio.nombre_servicio} for servicio in servicios], 200
+        try:
+            servicios_encontrados = Servicio.query.all()
+
+            if not Validacion.valor_nulo(servicios_encontrados):
+                return servicios_encontrados
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None

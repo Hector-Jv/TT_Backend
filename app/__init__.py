@@ -28,15 +28,15 @@ def create_app(config_class=Config):
     
     login_manager.init_app(app) # Inicializa instancia LoginManager.
     
-    app.config["IMG_SITIOS"] = "app/data/sitios"
-    app.config["IMG_COMENTARIOS"] = "app/data/comentarios"
-    app.config["IMG_PERFIL"] = "app/data/perfil"
-    app.config["IMG_INICIO"] = "app/data/inicio"
-    
+    app.config["IMG_SITIOS"] = "static/sitios"
+    app.config["IMG_COMENTARIOS"] = "static/comentarios"
+    app.config["IMG_USUARIOS"] = "static/usuarios"
 
     # Rutas que se han registrado
     from app import routes
 
+    app.register_blueprint(routes.autenticacion_bp)
+    """
     app.register_blueprint(routes.sitios_bp)
     app.register_blueprint(routes.login_bp)
     app.register_blueprint(routes.registro_bp)
@@ -44,5 +44,5 @@ def create_app(config_class=Config):
     app.register_blueprint(routes.inicial_bp)
     app.register_blueprint(routes.sitio_bp)
     app.register_blueprint(routes.crud_sitio_bp)
-    
+    """
     return app 

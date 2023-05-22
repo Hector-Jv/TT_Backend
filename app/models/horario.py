@@ -93,7 +93,7 @@ class Horario(db.Model):
     @staticmethod
     def eliminar_horario(cve_horario):
         """
-        Eliminar un horario en específico.
+        Elimina un horario en específico.
 
         Entrada:
             cve_horario (int): Clave del horario a eliminar.
@@ -106,7 +106,7 @@ class Horario(db.Model):
         """
         try:
             horario_encontrado = Horario.obtener_horario_por_cve(cve_horario)
-            if horario_encontrado:
+            if not Validacion.valor_nulo(horario_encontrado):
                 db.session.delete(horario_encontrado)
                 db.session.commit()
                 return True
@@ -125,7 +125,7 @@ class Horario(db.Model):
             cve_horario (int): Clave del horario a consultar.
 
         Retorno exitoso:
-            dict: Diccionario con la información del horario.
+            Horario: Instancia de Horario.
             
         Retorno fallido:
             None: No se encontró el horario u ocurrió un error.
@@ -133,8 +133,8 @@ class Horario(db.Model):
         try:
             horario_encontrado = Horario.query.get(cve_horario)
 
-            if horario_encontrado:
-                return horario_encontrado.to_dict()
+            if not Validacion.valor_nulo(horario_encontrado):
+                return horario_encontrado
             else:
                 return None
         except Exception as e:
@@ -150,15 +150,15 @@ class Horario(db.Model):
             cve_sitio (int): Clave del sitio a consultar.
 
         Retorno exitoso:
-            list: Lista de diccionarios con la información de los horarios.
+            list: Lista de instancias de tipo Horario.
         
         Retorno fallido:
             None: No se encontraron horario o hubo un error.
         """
         try:
             horarios_encontrados = Horario.query.filter_by(cve_sitio=cve_sitio).all()
-            if horarios_encontrados:
-                return [horario.to_dict for horario in horarios_encontrados]
+            if not Validacion.valor_nulo(horarios_encontrados):
+                return horarios_encontrados
             else:
                 return None
         except Exception as e:

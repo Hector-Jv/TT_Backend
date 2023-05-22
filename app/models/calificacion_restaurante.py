@@ -1,4 +1,6 @@
 from app import db
+from app.classes.validacion import Validacion
+from .calificacion import Calificacion
 
 class CalificacionRestaurante(db.Model):
     cve_calificacion = db.Column(db.Integer, db.ForeignKey('calificacion.cve_calificacion'), primary_key=True)
@@ -7,78 +9,176 @@ class CalificacionRestaurante(db.Model):
     costo = db.Column(db.Float, nullable=False)
     limpieza = db.Column(db.Float, nullable=False)
 
-    def __init__(self, calidad_servicio, sabor, costo, limpieza):
+    def to_dict(self):
         """
-        Inicializa una nueva calificación para un restaurante.
+        Convertir el objeto CalificacionRestaurante a un diccionario.
 
-        Argumentos:
-            calidad_servicio (float): Calificación para la calidad del servicio.
-            sabor (float): Calificación para el sabor.
-            costo (float): Calificación para el costo.
-            limpieza (float): Calificación para la limpieza.
+        Retorno:
+            dict: Diccionario que representa el CalificacionRestaurante.
         """
-        self.calidad_servicio = calidad_servicio
-        self.sabor = sabor
-        self.costo = costo
-        self.limpieza = limpieza
+        return {
+            'cve_calificacion': self.cve_calificacion,
+            'calidad_servicio': self.calidad_servicio,
+            'sabor': self.sabor,
+            'costo': self.costo,
+            'limpieza': self.limpieza
+        }
 
-    def modificar_calificacion(self, calidad_servicio=None, sabor=None, costo=None, limpieza=None):
+    @staticmethod
+    def agregar_calificacion(cve_calificacion, calidad_servicio, sabor, costo, limpieza):
+        """
+        Agrega calificación de restaurante.
+        
+        Entradas:
+            cve_calificacion (int): Clave de calificación.
+            calidad_servicio (float): Calificacion de servicio.
+            sabor (float): Calificación de sabor.
+            costo (float): Calificación de costo.
+            limpieza (float): Calificación de costo.
+            
+        Retorno exitoso:
+            True: Se agregó exitosamente.
+            
+        Retorno fallido:
+            False: Hubo un error.
+        """
+        try:
+            calificacion = Calificacion.obtener_calificacion(cve_calificacion)
+            
+            if Validacion.valor_nulo(calificacion):
+                return False
+            
+            nueva_calificacion = CalificacionRestaurante(
+                cve_calificacion = cve_calificacion,
+                calidad_servicio = calidad_servicio,
+                sabor = sabor,
+                costo = costo,
+                limpieza = limpieza
+            )
+            
+            db.session.add(nueva_calificacion)
+            db.session.commit()
+            return True
+        
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+
+    @staticmethod
+    def modificar_calificacion(cve_calificacion, calidad_servicio=None, sabor=None, costo=None, limpieza=None):
         """
         Modifica la calificación del restaurante. Solo los argumentos que no sean None serán modificados.
         
-        Argumentos:
-            calidad_servicio (float, optional): Nueva calificación para la calidad del servicio. Si es None, no se modificará.
-            sabor (float, optional): Nueva calificación para el sabor. Si es None, no se modificará.
-            costo (float, optional): Nueva calificación para el costo. Si es None, no se modificará.
-            limpieza (float, optional): Nueva calificación para la limpieza. Si es None, no se modificará.
-        """
-        if calidad_servicio is not None:
-            self.calidad_servicio = calidad_servicio
-        if sabor is not None:
-            self.sabor = sabor
-        if costo is not None:
-            self.costo = costo
-        if limpieza is not None:
-            self.limpieza = limpieza
-        db.session.commit()
+        Entradas obligatorias:
+            cve_calificacion (int): Clave de calificacion.
+            
+        Entradas opcionales:
+            calidad_servicio (float): Nueva calificación para la calidad del servicio.
+            sabor (float): Nueva calificación para el sabor.
+            costo (float): Nueva calificación para el costo.
+            limpieza (float): Nueva calificación para la limpieza.
+            
+        Retorno exitoso:
+            True: Se ha hecho la modificación exitosamente.
         
-    @classmethod
-    def eliminar_calificacion(cls, cve_calificacion):
+        Retorno fallido:
+            False: Hubo un error.
         """
-        Método para eliminar una calificación de un restaurante.
+        try:
+            calificacion = CalificacionRestaurante.obtener_calificacionrestaurante_por_cve(cve_calificacion)
+            
+            if Validacion.valor_nulo(calidad_servicio):
+                return False
+            
+            if not Validacion.valor_nulo(calidad_servicio):
+                calificacion.calidad_servicio = calidad_servicio
+            if not Validacion.valor_nulo(sabor):
+                calificacion.sabor = sabor
+            if not Validacion.valor_nulo(costo):
+                calificacion.costo = costo
+            if not Validacion.valor_nulo(limpieza):
+                calificacion.limpieza = limpieza
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+        
+    @staticmethod
+    def eliminar_calificacion(cve_calificacion):
+        """
+        Eliminar calificación de un restaurante.
 
-        Argumentos:
+        Entrada:
             cve_calificacion (int): Clave de la calificación a eliminar.
 
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
+        Retorno exitoso:
+            True: Se ha eliminado correctamente.
+        
+        Retorno fallido:
+            False: Hubo un error.
         """
-        calificacion = cls.query.get(cve_calificacion)
-        if calificacion:
+        try:
+            
+            calificacion = CalificacionRestaurante.obtener_calificacionrestaurante_por_cve(cve_calificacion)
+            
+            if Validacion.valor_nulo(calificacion):
+                return False
+            
             db.session.delete(calificacion)
             db.session.commit()
-            return {'message': 'Calificación eliminada con éxito.'}, 200
-        return 'Calificación no encontrada', 404
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
 
-    @classmethod
-    def consultar_calificacion(cls, cve_calificacion):
+    @staticmethod
+    def obtener_calificacionrestaurante_por_cve(cve_calificacion):
         """
-        Consulta la calificación de un restaurante.
+        Obtiene la calificación de un restaurante.
 
-        Argumentos:
+        Entrada:
             cve_calificacion (int): Clave de la calificación a consultar.
 
-        Retorno:
-            dict, int: Diccionario con los datos de la calificación y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
+        Retorno exitoso:
+            CalificacionRestaurante: Instancia de tipo CalificacionRestaurante.
+            
+        Retorno fallido:
+            None: Hubo un error o no existe.
         """
-        calificacion = cls.query.get(cve_calificacion)
-        if calificacion:
-            return {
-                'cve_calificacion': calificacion.cve_calificacion,
-                'calidad_servicio': calificacion.calidad_servicio,
-                'sabor': calificacion.sabor,
-                'costo': calificacion.costo,
-                'limpieza': calificacion.limpieza
-            }, 200
-        else:
-            return 'Calificación no encontrada', 404
+        try:
+            calificacion = CalificacionRestaurante.query.get(cve_calificacion)
+            if calificacion:
+                return calificacion
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
+
+    @staticmethod
+    def obtener_promedio(cve_calificacion):
+        """
+        Se obtiene el promedio de las calificaciones de una calificación.
+        
+        Entrada:
+            cve_calificacion (int): Clave de calificación.
+        
+        Retorno exitoso:
+            promedio (float): Promedio de las calificaciones.
+        
+        Retorno fallido:
+            None: Hubo un error.
+        """
+        try:
+            calificacion = CalificacionRestaurante.obtener_calificacionrestaurante_por_cve(cve_calificacion)
+            
+            if Validacion.valor_nulo(calificacion):
+                return None
+            
+            sum_total = calificacion.calidad_servicio + calificacion.sabor + calificacion.costo + calificacion.limpieza
+            return float(sum_total) / 4
+        
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None

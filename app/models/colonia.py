@@ -93,7 +93,7 @@ class Colonia(db.Model):
         try:
             colonia = Colonia.query.get(cve_colonia)
             if colonia:
-                return colonia.to_dict()
+                return colonia
             else:
                 return None
         except Exception as e:
@@ -117,7 +117,7 @@ class Colonia(db.Model):
         try:
             colonia = Colonia.query.filter_by(nombre_colonia=nombre).first()
             if colonia:
-                return colonia.to_dict()
+                return colonia
             else:
                 None
         except Exception as e:
@@ -142,7 +142,7 @@ class Colonia(db.Model):
         try:
             colonias = Colonia.query.filter_by(cve_delegacion=id_delegacion).all()
             if colonias:
-                return [colonia.to_dict() for colonia in colonias]
+                return colonias
             else:
                 return None
         except Exception as e:

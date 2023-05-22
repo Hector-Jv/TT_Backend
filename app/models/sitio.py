@@ -187,22 +187,19 @@ class Sitio(db.Model):
             print("Hubo un error: ", e)
             return None
     
-    ## PENDIENTE ##
     @staticmethod
     def eliminar_sitio(cve_sitio):
         """
         Eliminar un sitio.
 
-        Se sustituyen los datos personales del usuario por unos ficticios.
-
         Entrada:
             cve_sitio (int): Clave del sitio que se desea eliminar.
         
         Retorno exitoso:
-            True: Se eliminaron los datos personales del usuario y se sustituyeron por unos ficticios.
+            True: Se eliminó correctamente el sitio
             
         Retorno fallido:
-            False: Hubo un problema al eliminar los datos del usuario.
+            False: Hubo un problema.
         """
         try:
             sitio_encontrado = Sitio.obtener_sitio_por_cve(cve_sitio)
@@ -210,8 +207,7 @@ class Sitio(db.Model):
             if Validacion.valor_nulo(sitio_encontrado):
                 return False
             
-            sitio_encontrado.habilitado = False
-            
+            db.session.delete(sitio_encontrado)
             db.session.commit()
             return True
         
@@ -228,7 +224,7 @@ class Sitio(db.Model):
             cve_sitio (int): Clave del sitio a consultar.
 
         Retorno exitoso:
-            dict: Diccionario con los datos del sitio.
+            Sitio: Instancia de Sitio.
             
         Retorno fallido:
             None: No se encontró el sitio o hubo un error.
@@ -236,7 +232,7 @@ class Sitio(db.Model):
         try:
             sitio = Sitio.query.get(cve_sitio)
             if sitio:
-                return sitio.to_dict()
+                return sitio
             else:
                 return None
         except Exception as e:
@@ -248,73 +244,67 @@ class Sitio(db.Model):
         Obtener sitio de interés por su nombre.
         
         Retorno exitoso:
-            dict: Datos del sitio de interés.
+            Sitio: Instancia de Sitio
         
         Retorno fallido:
             None: No se encontró el sitio de interés.
         """
-        Sitio.query.filter_by(nombre_sitio=nombre_sitio).first()
-    
+        try:
+            sitio_encontrado = Sitio.query.filter_by(nombre_sitio=nombre_sitio).first()
 
+            if not Validacion.valor_nulo(sitio_encontrado):
+                return sitio_encontrado
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un problema: ", e)
+            
     @staticmethod
-    def obtener_sitios_por_tipo(cve_tipo_sitio):
+    def obtener_sitios_por_tipositio(cve_tipo_sitio):
         """
-        Método estático para consultar todos los sitios que pertenecen a un cierto tipo.
+        Obtener todos los sitios que pertenecen a un cierto tipo.
 
-        Argumentos:
+        Entrada:
             cve_tipo_sitio (int): Clave del tipo de sitio a consultar.
 
-        Retorno:
-            list, int: Lista de diccionarios con los datos de los sitios y código de estado HTTP, o mensaje de error y código de estado HTTP.
+        Retorno exitoso:
+            list: Lista de instancias de tipo Sitio.
+        
+        Retorno fallido:
+            None: Hubo un error o no se encontraron.
         """
-        sitios = Sitio.query.filter_by(cve_tipo_sitio=cve_tipo_sitio).all()
-        if sitios:
-            return [{
-                'cve_sitio': sitio.cve_sitio,
-                'nombre_sitio': sitio.nombre_sitio,
-                'x_longitud': sitio.x_longitud,
-                'y_latitud': sitio.y_latitud,
-                'direccion': sitio.direccion,
-                'descripcion': sitio.descripcion,
-                'correo_sitio': sitio.correo_sitio,
-                'fecha_fundacion': sitio.fecha_fundacion,
-                'costo_promedio': sitio.costo_promedio,
-                'pagina_web': sitio.pagina_web,
-                'telefono': sitio.telefono,
-                'adscripcion': sitio.adscripcion,
-                'cve_tipo_sitio': sitio.cve_tipo_sitio,
-                'cve_colonia': sitio.cve_colonia,
-                'habilitado': sitio.habilitado
-            } for sitio in sitios], 200
-        return 'No se encontraron sitios con ese tipo', 404
+        try:
+            sitios_encontrados = Sitio.query.filter_by(cve_tipo_sitio=cve_tipo_sitio).all()
+            if not Validacion.valor_nulo(sitios_encontrados):
+                return sitios_encontrados
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un problema: ", e)
+            return None
 
     @staticmethod
-    def consultar_sitios_por_colonia(cve_colonia):
+    def obtener_sitios_por_colonia(cve_colonia):
         """
-        Método estático para consultar todos los sitios que pertenecen a una cierta colonia.
+        Obtener todos los sitios que pertenecen a una cierta colonia.
 
-        Argumentos:
+        Entrada:
             cve_colonia (int): Clave de la colonia a consultar.
 
-        Retorno:
-            list, int: Lista de diccionarios con los datos de los sitios y código de estado HTTP, o mensaje de error y código de estado HTTP.
+        Retorno exitoso:
+            list: Lista de instancias de tipo Sitio.
+        
+        Retorno fallido:
+            None: Hubo un problema o no se encontraron.
         """
-        sitios = Sitio.query.filter_by(cve_colonia=cve_colonia).all()
-        if sitios:
-            return [{
-                'nombre_sitio': sitio.nombre_sitio,
-                'x_longitud': sitio.x_longitud,
-                'y_latitud': sitio.y_latitud,
-                'direccion': sitio.direccion,
-                'descripcion': sitio.descripcion,
-                'correo_sitio': sitio.correo_sitio,
-                'fecha_fundacion': sitio.fecha_fundacion,
-                'costo_promedio': sitio.costo_promedio,
-                'pagina_web': sitio.pagina_web,
-                'telefono': sitio.telefono,
-                'adscripcion': sitio.adscripcion,
-                'cve_tipo_sitio': sitio.cve_tipo_sitio,
-                'cve_colonia': sitio.cve_colonia,
-                'habilitado': sitio.habilitado
-            } for sitio in sitios], 200
-        return 'No se encontraron sitios en esa colonia', 404
+        try:
+            
+            sitios_encontrados = Sitio.query.filter_by(cve_colonia=cve_colonia).all()
+            
+            if not Validacion.valor_nulo(sitios_encontrados):
+                return sitios_encontrados
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None

@@ -47,16 +47,20 @@ class Delegacion(db.Model):
         Retorno fallido:
             None: No se encontraron delegaciones guardadas.
         """
-        delegaciones = Delegacion.query.all()
-        if delegaciones:
-            return [delegacion.to_dict() for delegacion in delegaciones]
-        else:
+        try:
+            delegaciones = Delegacion.query.all()
+            if delegaciones:
+                return delegaciones
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
             return None
 
     @staticmethod
-    def buscar_por_cve(cve):
+    def obtener_delegacion_por_cve(cve):
         """
-        Método estático para buscar una delegación por su clave.
+        Obtener delegación por su clave.
 
         Entrada:
             cve (int): Clave de la delegación a buscar.
@@ -70,7 +74,7 @@ class Delegacion(db.Model):
         try:
             delegacion = Delegacion.query.filter_by(cve_delegacion=cve).first()
             if delegacion:
-                return delegacion.to_dict()
+                return delegacion
             else:
                 return None
         except Exception as e:

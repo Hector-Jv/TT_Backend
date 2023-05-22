@@ -18,7 +18,6 @@ class Etiqueta(db.Model):
             'nombre_etiqueta': self.nombre_etiqueta
         }
 
-
     @staticmethod
     def agregar_etiqueta(nombre_etiqueta):
         """
@@ -47,80 +46,105 @@ class Etiqueta(db.Model):
             print("Hubo un error: ", e)
             return False
 
-    def eliminar_etiqueta(cls, cve_etiqueta):
+    @staticmethod
+    def eliminar_etiqueta(cve_etiqueta):
         """
-        Método para eliminar una etiqueta.
+        Eliminar etiqueta de la base de datos.
 
-        Argumentos:
+        Entrada:
             cve_etiqueta (int): Clave de la etiqueta a eliminar.
 
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
+        Retorno exitoso:
+            True: Se ha eliminado correctamente.
+            
+        Retorno fallido:
+            False: Hubo un problema.
         """
-        etiqueta = cls.query.get(cve_etiqueta)
-        if etiqueta:
-            db.session.delete(etiqueta)
-            db.session.commit()
-            return 'Etiqueta eliminada con éxito', 200
-        else:
-            return 'Etiqueta no encontrada', 404
+        try:    
+            etiqueta_encontrada = Etiqueta.query.get(cve_etiqueta)
+            if etiqueta_encontrada:
+                db.session.delete(etiqueta_encontrada)
+                db.session.commit()
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Hubo un problema: ", e)
+            return False
 
-    def modificar_etiqueta(cls, cve_etiqueta, nombre_etiqueta):
+    @staticmethod
+    def modificar_etiqueta(cve_etiqueta, nombre_etiqueta):
         """
-        Método para modificar una etiqueta.
+        Modificar una etiqueta.
 
-        Argumentos:
+        Entrada:
             cve_etiqueta (int): Clave de la etiqueta a modificar.
             nombre_etiqueta (str): Nuevo nombre de la etiqueta.
 
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
+        Retorno exitoso:
+            True: Se han realizado las modificaciones.
+            
+        Retorno fallido:
+            False: Hubo un error o no existe la etiqueta a modificar.
         """
-        etiqueta = cls.query.get(cve_etiqueta)
-        if etiqueta:
-            try:
-                etiqueta.nombre_etiqueta = nombre_etiqueta
+        try:
+            etiqueta_encontrada = Etiqueta.query.get(cve_etiqueta)
+            if etiqueta_encontrada:
+                
+                etiqueta_encontrada.nombre_etiqueta = nombre_etiqueta
                 db.session.commit()
-                return 'Etiqueta modificada con éxito', 200
-            except IntegrityError:
-                db.session.rollback()
-                return 'La etiqueta ya existe', 400
-        else:
-            return 'Etiqueta no encontrada', 404
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Hubo un problema: ", e)
+            return False
 
     @staticmethod
-    def consultar_etiqueta_por_cve(cve_etiqueta):
+    def obtener_etiqueta_por_cve(cve_etiqueta):
         """
-        Método para consultar una etiqueta por clave.
+        Obtener una etiqueta por clave.
 
-        Argumentos:
+        Entrada:
             cve_etiqueta (int): Clave de la etiqueta a consultar.
 
-        Retorno:
-            dict, int: Diccionario con los datos de la etiqueta y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
+        Retorno exitoso:
+            Etiqueta: Instancia de la clase Etiqueta
+            
+        Retorno fallido:
+            None: Hubo un error o no existe una etiqueta con la clave ingresada.
         """
-        etiqueta = Etiqueta.query.get(cve_etiqueta)
-        if etiqueta:
-            return {
-                'cve_etiqueta': etiqueta.cve_etiqueta,
-                'nombre_etiqueta': etiqueta.nombre_etiqueta
-            }, 200
-        else:
-            return 'Etiqueta no encontrada', 404
+        try:
+            etiqueta_encontrada = Etiqueta.query.get(cve_etiqueta)
+            if etiqueta_encontrada:
+                return etiqueta_encontrada
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
 
     @staticmethod
-    def consultar_todas_etiquetas():
+    def obtener_todas_las_etiquetas():
         """
-        Método para consultar todas las etiquetas existentes.
+        Obtener todas las etiquetas de la base de datos.
 
-        Retorno:
-            list, int: Lista de diccionarios con los datos de todas las etiquetas y código de estado HTTP.
+        Retorno exitoso:
+            list: Lista de instancias de tipo Etiqueta.
+        
+        Retorno fallido:
+            None: Hubo un error o no hay etiquetas registradas.
         """
-        etiquetas = Etiqueta.query.all()
-        return [{
-            'cve_etiqueta': etiqueta.cve_etiqueta,
-            'nombre_etiqueta': etiqueta.nombre_etiqueta
-        } for etiqueta in etiquetas], 200
+        try:  
+            etiquetas_encontradas = Etiqueta.query.all()
+            
+            if Validacion.valor_nulo(etiquetas_encontradas):
+                return None
+            
+            return etiquetas_encontradas
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
 
     @staticmethod
     def obtener_etiqueta_por_nombre(nombre_etiqueta):
@@ -139,7 +163,7 @@ class Etiqueta(db.Model):
         try:
             etiqueta_encontrada = Etiqueta.query.filter_by(nombre_etiqueta=nombre_etiqueta).first()
             if etiqueta_encontrada:
-                return etiqueta_encontrada.to_dict()
+                return etiqueta_encontrada
             else:
                 return None
         except Exception as e:

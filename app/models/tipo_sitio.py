@@ -57,7 +57,7 @@ class TipoSitio(db.Model):
             False: Ocurrió un problema y no se pudo eliminar.
         """
         try:
-            tipo_sitio = TipoSitio.query.get(cve_tipo_sitio)
+            tipo_sitio = TipoSitio.obtener_tipositio_por_cve(cve_tipo_sitio)
             if tipo_sitio:
                 db.session.delete(tipo_sitio)
                 db.session.commit()
@@ -77,7 +77,7 @@ class TipoSitio(db.Model):
             cve_tipo_sitio (int): Clave del tipo de sitio a consultar.
 
         Retorno exitoso:
-            dict: Diccionario con los datos del tipo de sitio
+            TipoSitio: Objeto TipoSitio.
         
         Retorno fallido:
             None: No se encontró el tipo de sitio.
@@ -85,7 +85,7 @@ class TipoSitio(db.Model):
         try:
             tipo_sitio = TipoSitio.query.get(cve_tipo_sitio)
             if tipo_sitio:
-                return tipo_sitio.to_dict()
+                return tipo_sitio
             else:
                 return None
         except Exception as e:
@@ -101,7 +101,7 @@ class TipoSitio(db.Model):
             nombre (str): Nombre del tipo de sitio a consultar.
 
         Retorno exitoso:
-            dict: Diccionario con los datos del tipo de sitio.
+            TipoSitio: Instancia TipoSitio.
         
         Retorno fallido:
             None: No se encontraron los datos del tipo de sitio.
@@ -109,7 +109,7 @@ class TipoSitio(db.Model):
         try:
             tipo_sitio = TipoSitio.query.filter_by(tipo_sitio=nombre).first()
             if tipo_sitio:
-                return tipo_sitio.to_dict()
+                return tipo_sitio
             else:
                 return None
         except Exception as e:
@@ -122,7 +122,7 @@ class TipoSitio(db.Model):
         Obtener todos los tipos de sitio.
 
         Retorno exitoso:
-            list: Lista de diccionarios con los datos de todos los tipos de sitio.
+            list: Lista de instancia de TipoSitio.
         
         Retorno fallido:
             None: No se encontraron tipos de sitios o hubo un error.
@@ -130,7 +130,7 @@ class TipoSitio(db.Model):
         try:
             tipos_sitio = TipoSitio.query.all()
             if tipos_sitio:
-                return [tipo_sitio.to_dict() for tipo_sitio in tipos_sitio]
+                return tipos_sitio
             else:
                 return None
         except Exception as e:

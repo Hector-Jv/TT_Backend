@@ -1,4 +1,5 @@
 from app import db
+from app.classes.validacion import Validacion
 
 class ServicioHotel(db.Model):
     cve_sitio = db.Column(db.Integer, primary_key=True)
@@ -43,7 +44,9 @@ class ServicioHotel(db.Model):
             False: Existe ya una relación o hubo un error.
         """
         try:
-            if ServicioHotel.existe_relacion_servicio_y_hotel(cve_servicio=cve_servicio, cve_sitio=cve_sitio):
+            relacion_encontrada = ServicioHotel.obtener_relacion_servicio_y_hotel(cve_servicio=cve_servicio, cve_sitio=cve_sitio)
+            
+            if not Validacion.valor_nulo(relacion_encontrada):
                 return False
             
             nueva_relacion = ServicioHotel(
@@ -57,104 +60,142 @@ class ServicioHotel(db.Model):
             print("Hubo un error: ", e)
             return False
 
-    def eliminar_relacion(self):
+    @staticmethod
+    def eliminar_relacion_por_cvesitio_y_cveservicio(cve_sitio, cve_servicio):
         """
-        Método para eliminar una relación de la base de datos.
+        Eliminar una relación de la base de datos.
+        
+        Entrada:
+            cve_sitio (int): Clave de sitio.
+            cve_servicio (int): Clave de servicio.
+        
+        Retorno exitoso:
+            True: Se elimino de manera correcta.
+        
+        Retorno fallido:
+            False: Hubo un error
         """
-        db.session.delete(self)
-        db.session.commit()
+        try:
+            relacion_encontrada = ServicioHotel.obtener_relacion_servicio_y_hotel(cve_servicio=cve_servicio, cve_sitio=cve_sitio)
 
-    def modificar_relacion(self, nueva_cve_sitio, nueva_cve_servicio):
-        """
-        Método para modificar la clave del sitio y la clave del servicio en una relación.
+            if not Validacion.valor_nulo(relacion_encontrada):
+                db.session.delete(relacion_encontrada)
+                db.session.commit()
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
 
-        Argumentos:
-            nueva_cve_sitio (int): Nueva clave del sitio.
-            nueva_cve_servicio (int): Nueva clave del servicio.
+    @staticmethod
+    def eliminar_relaciones_por_cveservicio(cve_servicio):
         """
-        self.cve_sitio = nueva_cve_sitio
-        self.cve_servicio = nueva_cve_servicio
-        db.session.commit()
+        Eliminar todas las relaciones que tengan la misma clave de servicio.
+
+        Entrada:
+            cve_servicio (int): Clave del servicio.
+
+        Retorno exitoso:
+            True: Se han eliminado las relaciones.
+        
+        Retorno fallido:
+            False: Hubo un error.
+        """
+        try:
+            relaciones_encontradas = ServicioHotel.obtener_relaciones_por_cveservicio(cve_servicio)
+            
+            if Validacion.valor_nulo(relaciones_encontradas):
+                return False
+            
+            for relacion in relaciones_encontradas:
+                db.session.delete(relacion)
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
     
     @staticmethod
-    def consultar_por_cve_servicio(cve_servicio):
+    def eliminar_relaciones_por_cvesitio(cve_sitio):
         """
-        Método estático para consultar relaciones por la clave del servicio.
+        Eliminar todas las relaciones que tengan la misma clave de sitio.
 
-        Argumentos:
-            cve_servicio (int): Clave del servicio a buscar.
+        Entrada:
+            cve_sitio (int): Clave del sitio.
 
-        Retorno:
-            list, int: Lista de diccionarios con los datos de las relaciones y código de estado HTTP, o mensaje de error y código de estado HTTP.
+        Retorno exitoso:
+            True: Se han eliminado las relaciones.
+        
+        Retorno fallido:
+            False: Hubo un error.
         """
-        relaciones = ServicioHotel.query.filter_by(cve_servicio=cve_servicio).all()
-        if relaciones:
-            return [{'cve_sitio': relacion.cve_sitio, 'cve_servicio': relacion.cve_servicio} for relacion in relaciones], 200
-        return 'No se encontraron relaciones con ese servicio', 404
+        try:
+            relaciones_encontradas = ServicioHotel.obtener_relaciones_por_cvesitio(cve_sitio)
+            
+            if Validacion.valor_nulo(relaciones_encontradas):
+                return False
+            
+            for relacion in relaciones_encontradas:
+                db.session.delete(relacion)
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
 
     @staticmethod
-    def consultar_por_cve_sitio(cve_sitio):
+    def obtener_relaciones_por_cveservicio(cve_servicio):
         """
-        Método estático para consultar relaciones por la clave del sitio.
+        Obtener todas las relaciones que tengan la misma clave servicio.
 
-        Argumentos:
-            cve_sitio (int): Clave del sitio a buscar.
-
-        Retorno:
-            list, int: Lista de diccionarios con los datos de las relaciones y código de estado HTTP, o mensaje de error y código de estado HTTP.
+        Entrada:
+            cve_servicio (int): Clave del servicio.
+            
+        Retorno exitoso:
+            list: Lista de instancias de tipo ServicioHotel.
+            
+        Retorno fallido:
+            None: Hubo un error o no se encontraron relaciones.
         """
-        relaciones = ServicioHotel.query.filter_by(cve_sitio=cve_sitio).all()
-        if relaciones:
-            return [{'cve_sitio': relacion.cve_sitio, 'cve_servicio': relacion.cve_servicio} for relacion in relaciones], 200
-        return 'No se encontraron relaciones con ese sitio', 404
+        try:
+            relaciones_encontradas = ServicioHotel.query.filter_by(cve_servicio=cve_servicio).all()
+            
+            if not Validacion.valor_nulo(relaciones_encontradas):
+                return relaciones_encontradas
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
     
     @staticmethod
-    def eliminar_relaciones_por_llave(cve_sitio=None, cve_servicio=None):
+    def obtener_relaciones_por_cvesitio(cve_sitio):
         """
-        Método estático para eliminar todas las relaciones que tengan la misma cve_sitio o la misma cve_servicio.
+        Obtener todas las relaciones que tengan la misma clave sitio.
 
-        Argumentos:
-            cve_sitio (int, optional): Clave del sitio. Si se proporciona, se eliminarán todas las relaciones con esta clave.
-            cve_servicio (int, optional): Clave del servicio. Si se proporciona, se eliminarán todas las relaciones con esta clave.
-
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP, o mensaje de error y código de estado HTTP.
+        Entrada:
+            cve_sitio (int): Clave del sitio.
+            
+        Retorno exitoso:
+            list: Lista de instancias de tipo ServicioHotel.
+            
+        Retorno fallido:
+            None: Hubo un error o no se encontraron relaciones.
         """
-        if cve_sitio:
-            relaciones = ServicioHotel.query.filter_by(cve_sitio=cve_sitio).all()
-        elif cve_servicio:
-            relaciones = ServicioHotel.query.filter_by(cve_servicio=cve_servicio).all()
-        else:
-            return 'Debes proporcionar al menos una clave', 400
-
-        for relacion in relaciones:
-            db.session.delete(relacion)
-        db.session.commit()
-        return 'Relaciones eliminadas con éxito', 200
-
+        try:
+            relaciones_encontradas = ServicioHotel.query.filter_by(cve_sitio=cve_sitio).all()
+            
+            if not Validacion.valor_nulo(relaciones_encontradas):
+                return relaciones_encontradas
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
+        
     @staticmethod
-    def consultar_relaciones_por_llave(cve_sitio=None, cve_servicio=None):
-        """
-        Método estático para consultar todas las relaciones que tengan la misma cve_sitio o la misma cve_servicio.
-
-        Argumentos:
-            cve_sitio (int, optional): Clave del sitio. Si se proporciona, se devolverán todas las relaciones con esta clave.
-            cve_servicio (int, optional): Clave del servicio. Si se proporciona, se devolverán todas las relaciones con esta clave.
-
-        Retorno:
-            list, int: Lista de diccionarios con los datos de las relaciones y código de estado HTTP, o mensaje de error y código de estado HTTP.
-        """
-        if cve_sitio:
-            relaciones = ServicioHotel.query.filter_by(cve_sitio=cve_sitio).all()
-        elif cve_servicio:
-            relaciones = ServicioHotel.query.filter_by(cve_servicio=cve_servicio).all()
-        else:
-            return 'Debes proporcionar al menos una clave', 400
-
-        return [{'cve_sitio': relacion.cve_sitio, 'cve_servicio': relacion.cve_servicio} for relacion in relaciones], 200
-    
-    @staticmethod
-    def existe_relacion_servicio_y_hotel(cve_servicio, cve_sitio):
+    def obtener_relacion_servicio_y_hotel(cve_servicio, cve_sitio):
         """
         Verifica si hay una relación entre un servicio y un sitio.
 
@@ -163,16 +204,18 @@ class ServicioHotel(db.Model):
             cve_sitio (int): Clave del sitio a consultar.
 
         Retorno exitoso:
-            True: Existe una relación.
+            ServicioHotel: Instancia ServicioHotel.
         
         Retorno fallido:
-            False: No existe una relación.
+            None: No existe una relación.
         """
         try:
-            if ServicioHotel.query.filter_by(cve_sitio=cve_sitio, cve_servicio=cve_servicio).first():
-                return True
+            relacion_encontrada = ServicioHotel.query.filter_by(cve_sitio=cve_sitio, cve_servicio=cve_servicio).first()
+            if not Validacion.valor_nulo(relacion_encontrada):
+                return relacion_encontrada
             else:
-                return False
+                return None
         except Exception as e:
             print("Hubo un error: ", e)
-            return False
+            return None
+        

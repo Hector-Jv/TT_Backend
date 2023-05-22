@@ -69,4 +69,4 @@ class Imagen():
         self.foto.save(os.path.join(current_app.config[nombre_ruta], nombre_unico))
         self.ruta_foto = os.path.join(current_app.config[nombre_ruta], nombre_unico)
         
-        self.nombre_foto = nombre_unico
+        ## self.nombre_foto = nombre_unico

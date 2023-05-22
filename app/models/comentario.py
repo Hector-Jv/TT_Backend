@@ -1,5 +1,7 @@
-from datetime import datetime
+import datetime
 from app import db
+
+from app.classes.validacion import Validacion
 
 class Comentario(db.Model):
     cve_comentario = db.Column(db.Integer, primary_key=True)
@@ -9,94 +11,151 @@ class Comentario(db.Model):
     
     historial = db.relationship('Historial', backref='comentarios')
     
-    def __init__(self, comentario, cve_historial):
+    def to_dict(self):
         """
-        Constructor de la clase Comentario.
+        Convertir el objeto del Comentario a un diccionario.
 
-        Argumentos:
+        Retorno:
+            dict: Diccionario que representa el comentario.
+        """
+        return {
+            'cve_comentario': self.cve_comentario,
+            'comentario': self.comentario,
+            'fecha_comentario': str(self.fecha_comentario),
+            'cve_historial': self.cve_historial
+        }
+    
+    @staticmethod
+    def agregar_comentario(comentario, cve_historial):
+        """
+        Agregar comentario a sitio de interés.
+        
+        Entrada:
             comentario (str): El comentario.
             cve_historial (int): Clave del historial al que se va a asociar el comentario.
+            
+        Retorno exitoso:
+            True: Se a agregado exitosamente el comentario a la base de datos.
+            
+        Retorno fallido:
+            False: Hubo un error.
         """
-        self.comentario = comentario
-        self.fecha_comentario = datetime.utcnow()
-        self.cve_historial = cve_historial
+        try:
+            historial_encontrado = Comentario.obtener_comentario_por_historial(cve_historial)
+            
+            if not Validacion.valor_nulo(historial_encontrado):
+                return False
+            
+            nuevo_comentario = Comentario(
+                comentario = comentario,
+                fecha_comentario = datetime.utcnow(),
+                cve_historial = cve_historial
+            )
+            
+            db.session.add(nuevo_comentario)
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
 
-    def agregar_comentario(comentario):
+    @staticmethod
+    def modificar_comentario(cve_comentario, comentario):
         """
-        Agregar un nuevo comentario a la base de datos.
+        Modifica un comentario existente en la base de datos.
 
-        Argumentos:
-            comentario (Comentario): La instancia de Comentario a agregar.
-
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP.
-        """
-        db.session.add(comentario)
-        db.session.commit()
-        return 'Comentario agregado con éxito', 200
-    
-    def modificar_comentario(self, comentario):
-        """
-        Modificar un comentario existente en la base de datos.
-
-        Argumentos:
+        Entrada:
+            cve_comentario (int): Clave de comentario
             comentario (str): El nuevo comentario.
 
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP.
+        Retorno exitoso:
+            True: Se ha modificado el comentario con exito.
+            
+        Retorno fallido:
+            False: Ha habido un error.
         """
-        self.comentario = comentario
-        db.session.commit()
-        return 'Comentario modificado con éxito', 200
+        try:
+            comentario_encontrado = Comentario.obtener_comentario_por_cve(cve_comentario)
+            
+            if Validacion.valor_nulo(comentario_encontrado):
+                return False
+            
+            comentario_encontrado.comentario = comentario
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
 
-    def eliminar_comentario(self):
+    @staticmethod
+    def eliminar_comentario(cve_comentario):
         """
         Eliminar un comentario de la base de datos.
 
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP.
+        Retorno exitoso:
+            True: Se pudo eliminar con exito el comentario de la base de datos.
+            
+        Retorno fallido:
+            False: Hubo un error o no se encontraba el comentario a eliminar.
         """
-        db.session.delete(self)
-        db.session.commit()
-        return 'Comentario eliminado con éxito', 200
+        try:
+            comentario_encontrado = Comentario.obtener_comentario_por_cve(cve_comentario)
+            
+            if not Validacion.valor_nulo(comentario_encontrado):
+                db.session.delete(comentario_encontrado)
+                db.session.commit()
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
 
     @staticmethod
-    def consultar_comentario_por_cve(cve_comentario):
+    def obtener_comentario_por_cve(cve_comentario):
         """
-        Consultar un comentario por su clave.
+        Obtener un comentario por su clave..
 
-        Argumentos:
+        Entrada:
             cve_comentario (int): Clave del comentario.
 
-        Retorno:
-            dict, int: Diccionario con los datos del comentario y código de estado HTTP, o mensaje de error y código de estado HTTP.
+        Retorno exitoso:
+            Comentario: Instancia de tipo Comentario.
+            
+        Retorno fallido:
+            None: Hubo un error o no se encontraron.
         """
-        comentario = Comentario.query.get(cve_comentario)
-        if comentario:
-            return {
-                'comentario': comentario.comentario,
-                'fecha_comentario': comentario.fecha_comentario,
-                'cve_historial': comentario.cve_historial
-            }, 200
-        return 'Comentario no encontrado', 404
+        try:
+            comentario_encontrado = Comentario.query.get(cve_comentario)
+            
+            if not Validacion.valor_nulo(comentario_encontrado):
+                return comentario_encontrado
+            else:
+                return None
+        except Exception as e:
+            return None
 
+    ## Se esta trabajando como 1 a 1, pero se puede cambiar a 1 a n.
     @staticmethod
-    def consultar_comentarios_por_historial(cve_historial):
+    def obtener_comentario_por_historial(cve_historial):
         """
-        Consultar todos los comentarios asociados a un historial.
+        Obtiener comentario de un historial.
 
-        Argumentos:
+        Entrada:
             cve_historial (int): Clave del historial.
 
-        Retorno:
-            list, int: Lista de diccionarios con los datos de los comentarios y código de estado HTTP, o mensaje de error y código de estado HTTP.
+        Retorno exitoso:
+            Comentario: Instancia de tipo Comentario.
+            
+        Retorno fallido:
+            None: Hubo un error o no se encontraron.
         """
-        comentarios = Comentario.query.filter_by(cve_historial=cve_historial).all()
-        if comentarios:
-            return [{
-                'cve_comentario': comentario.cve_comentario,
-                'comentario': comentario.comentario,
-                'fecha_comentario': comentario.fecha_comentario,
-                'cve_historial': comentario.cve_historial
-            } for comentario in comentarios], 200
-        return 'No se encontraron comentarios para ese historial', 404
+        try:
+            comentario_encontrado = Comentario.query.filter_by(cve_historial=cve_historial).first()
+            
+            if not Validacion.valor_nulo(comentario_encontrado):
+                return comentario_encontrado
+            else:
+                return None
+        except Exception as e:
+            return None

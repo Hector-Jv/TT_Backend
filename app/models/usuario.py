@@ -1,28 +1,12 @@
-from pymysql import IntegrityError
+import uuid
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
 from flask_login import UserMixin
-from PIL import Image # Verificación de la imagen.
-import os, uuid
 from sqlalchemy.orm.exc import NoResultFound
-from flask import current_app
-from app.models.tipo_usuario import TipoUsuario
+from .tipo_usuario import TipoUsuario
+from app.classes.validacion import Validacion
 
 class Usuario(db.Model, UserMixin):
-    """
-    Modelo de Usuario para la base de datos.
-    
-    Atributos:
-        correo_usuario (str): Correo del usuario, sirve como clave primaria.
-        usuario (str): Nombre de usuario.
-        contrasena_hash  (str): Contraseña del usuario (solo para escritura, no lectura).
-        foto_usuario (str): Ruta donde se almacena la foto del usuario (opcional).
-        cve_tipo_usuario (int): Clave foránea del tipo de usuario.
-        habilitado (bool): Indica si el usuario está habilitado o no.
-        
-        tipo_usuario (relationship): Relación con la tabla TipoUsuario.
-    """
     correo_usuario = db.Column(db.String(100), primary_key=True, unique=True)
     usuario = db.Column(db.String(100), nullable=False, unique=True)
     contrasena_hash  = db.Column(db.String(128))
@@ -32,31 +16,33 @@ class Usuario(db.Model, UserMixin):
 
     tipo_usuario = db.relationship('TipoUsuario', backref='usuarios')
     
-    def __init__(self, correo_usuario, usuario, contrasena, foto, cve_tipo_usuario):
-        self.correo_usuario = correo_usuario
-        self.usuario = usuario
-        self.contrasena = contrasena
-        self.cve_tipo_usuario = cve_tipo_usuario
-        self.habilitado = True
+    def to_dict(self):
+        """
+        Convertir el objeto del Usuario a un diccionario.
 
-        if foto is not None and self.verificar_extension(foto.filename):  
-            if not self.tamaño_permitido(len(foto.read())):
-                raise ValueError('Foto demasiada pesada.')
-            foto.seek(0)
-            
-            if not self.validar_imagen(foto):
-                raise ValueError('El archivo no es una imagen válida.')
-            foto.seek(0)
-            
-            filename = secure_filename(foto.filename)
-            nombre_unico = str(uuid.uuid4()) + "_" + filename
-            
-            foto.save(os.path.join(current_app.config['IMG_PERFIL'], nombre_unico))
-            ruta_foto = os.path.join(current_app.config['IMG_PERFIL'], nombre_unico)
-            self.ruta_foto_usuario = ruta_foto
-        else:
-            self.ruta_foto_usuario = None
+        Retorno:
+            dict: Diccionario que representa el Usuario.
+        """
+        return {
+            'correo_usuario': self.correo_usuario,
+            'usuario': self.usuario,
+            'ruta_foto_usuario': self.ruta_foto_usuario,
+            'cve_tipo_usuario': self.cve_tipo_usuario,
+            'habilitado': self.habilitado
+        }
     
+    def verificar_contrasena(self, contrasena):
+        """
+        Verifica la contraseña en texto plano contra el hash almacenado.
+
+        Entrada:
+            contrasena (str): La contraseña en texto plano a verificar.
+
+        Retorno:
+            bool: True si la contraseña es correcta, False en caso contrario.
+        """
+        return check_password_hash(self.contrasena_hash, contrasena)
+            
     @property
     def contrasena(self): 
         """
@@ -72,118 +58,141 @@ class Usuario(db.Model, UserMixin):
         """
         Define la contraseña, generando un hash para su almacenamiento seguro.
 
-        Argumentos:
+        Entrada:
             contrasena (str): La contraseña en texto plano.
         """
         self.contrasena_hash = generate_password_hash(contrasena)
 
-    def verificar_contrasena(self, contrasena):
+    @staticmethod
+    def agregar_usuario(correo_usuario, usuario, contrasena, ruta_foto_usuario):
         """
-        Verifica la contraseña en texto plano contra el hash almacenado.
-
-        Argumentos:
-            contrasena (str): La contraseña en texto plano a verificar.
-
-        Retorno:
-            bool: True si la contraseña es correcta, False en caso contrario.
-        """
-        return check_password_hash(self.contrasena_hash, contrasena)
-    
-    def agregar_usuario(self):
-        """
-        Agrega el usuario actual a la base de datos.
-
-        Retorno:
-            str: Un mensaje indicando que el usuario se guardó con éxito.
-            int: Un código de estado HTTP.
+        Agrega un nuevo usuario a la base de datos.
+        
+        Entrada obligatoria:
+            correo_usuario (str): Correo de usuario.
+            usuario (str): Nombre de usuario del usuario.
+            contrasena (str): Contrasena para acceder a cuenta.
+        
+        Entrada opcional:
+            ruta_foto_usuario (str): Ruta de la imagen
+            
+        Retorno exitoso:
+            True: Se ha creado con exito el usuario.
+        
+        Retorno fallido:
+            False: Hubo un problema.
         """
         try:
-            db.session.add(self)
+            
+            if not Validacion.valor_nulo(Usuario.obtener_usuario_por_correo(correo_usuario)):
+                return False
+            
+            if not Validacion.valor_nulo(Usuario.obtener_usuario_por_usuario(usuario)):
+                return False
+            
+            if not Validacion.formato_contrasena(contrasena):
+                return False
+            
+            if not Validacion.formato_correo(correo_usuario):
+                return False
+            
+            tipousuario_encontrado = TipoUsuario.obtener_nombre_tipo_usuario("Usuario registrado")
+            
+            nuevo_usuario = Usuario(
+                correo_usuario = correo_usuario,
+                usuario = usuario,
+                contrasena = contrasena,
+                ruta_foto_usuario = ruta_foto_usuario,
+                cve_tipo_usuario = tipousuario_encontrado.tipo_usuario,
+                habilitado = True
+            )
+            db.session.add(nuevo_usuario)
             db.session.commit()
-            return 'Usuario agregado con éxito', 200
-        except IntegrityError:
-            db.session.rollback()
-            return 'Correo o usuario ya en uso.', 400
-
-    def actualizar_datos_cuenta(self, usuario=None, contrasena=None, foto_usuario=None):
+            return True
+            
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+    
+    @staticmethod
+    def actualizar_datos_cuenta(correo_usuario, usuario=None, contrasena=None, ruta_foto_usuario=None):
         """
         Actualiza los datos de la cuenta del usuario con los valores proporcionados.
 
-        Argumentos:
-            usuario (str, opcional): Nuevo nombre de usuario.
-            contrasena (str, opcional): Nueva contraseña.
-            foto_usuario (FileStorage, opcional): Nueva foto de perfil.
+        Entrada obligatoria:
+            correo_usuario (str): Correo de usuario.
+            
+        Entrada opcional:
+            usuario (str): Nuevo nombre de usuario.
+            contrasena (str): Nueva contraseña.
+            ruta_foto_usuario (str): Nueva foto de perfil.
 
-        Retorno:
-            str: Un mensaje indicando que los datos de la cuenta se actualizaron con éxito.
-            int: Un código de estado HTTP 200.
+        Retorno exitoso:
+            True: Se efectuaron los cambios correctamente.
+            
+        Retorno fallido:
+            False: Hubo un error.
         """
-        if usuario is not None:
-            self.usuario = usuario
-        if contrasena is not None:
-            self.contrasena = contrasena
-        if foto_usuario is not None:
-            if foto_usuario and Usuario.verificar_extension(foto_usuario.filename):  
-                # Verifica que el tamaño de la fotografía no exceda a 1MB
-                if not Usuario.tamaño_permitido(len(foto_usuario.read())):
-                    return 'Foto demasiada pesada.', 400
-                foto_usuario.seek(0) # Resetea el puntero
-                
-                if not Usuario.validar_imagen(foto_usuario):
-                    return 'El archivo no es una imagen válida.', 400
-                foto_usuario.seek(0) # Resetea el puntero
-                
-                filename = secure_filename(foto_usuario.filename)
-                nombre_unico = str(uuid.uuid4()) + "_" + filename # Se le añade un UUID al nombre del archivo.
-                
-                # Si el usuario ya tiene una foto, elimina la foto anterior
-                if self.ruta_foto_usuario:
-                    try:
-                        os.remove(self.ruta_foto_usuario)
-                    except OSError:
-                        pass
-                
-                foto_usuario.save(os.path.join(current_app.config['IMG_PERFIL'], nombre_unico)) # Se almacena la foto en el path especificado.
-                self.ruta_foto_usuario = os.path.join(current_app.config['IMG_PERFIL'], nombre_unico) # Se actualiza la ruta en la base de datos.
-            else:
-                return 'Archivo no válido', 400
-        db.session.commit()
-        return 'Datos de la cuenta actualizados con éxito', 200
-
+        try:
+            usuario_encontrado = Usuario.obtener_usuario_por_correo(correo_usuario)
+            
+            if Validacion.valor_nulo(usuario_encontrado):
+                return False
+            
+            if not Validacion.valor_nulo(usuario):
+                usuario_encontrado.usuario = usuario
+            if not Validacion.valor_nulo(contrasena):
+                usuario_encontrado.contrasena = contrasena
+            if not Validacion.valor_nulo(ruta_foto_usuario):
+                usuario_encontrado.ruta_foto_usuario = contrasena
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+            
     @staticmethod
-    def crear_usuario_ficticio():
+    def eliminar_usuario(correo_usuario):
         """
-        Crea un usuario ficticio.
+        Sustituye los datos personales de la cuenta de un usuario por unos ficticios.
 
-        Retorno:
-            Usuario: Una instancia de Usuario con los datos del usuario ficticio.
+        Entrada:
+            correo_usuario (str): Correo de usuario a eliminar.
+            
+        Retorno exitoso:
+            True: Se han sustituido los datos por unos ficticios.
+            
+        Retorno fallido:
+            False: Hubo un error.
         """
-        # Genera un correo y nombre de usuario aleatorios
-        correo_ficticio = f'ficticio_{uuid.uuid4()}@ficticio.com'
-        usuario_ficticio = f'Usuario_{uuid.uuid4()}'
+        try:
+            usuario_encontrado = Usuario.obtener_usuario_por_correo(correo_usuario)
+            
+            if Validacion.valor_nulo(usuario_encontrado):
+                return False
+            
+            correo_ficticio = f'ficticio_{uuid.uuid4()}@ficticio.com'
+            usuario_ficticio = f'Usuario_{uuid.uuid4()}'
         
-        # Obtiene el id del tipo de usuario "Usuario eliminado"
-        cve_tipo_usuario = TipoUsuario.obtener_id_tipo_usuario('Usuario eliminado')
-        if cve_tipo_usuario is None:
-            return 'Tipo de usuario "Usuario eliminado" no encontrado.', 404
+            tipousuario_encontrado = TipoUsuario.obtener_tipousuario_por_nombre("Usuario eliminado")
+            
+            if Validacion.valor_nulo(tipousuario_encontrado):
+                return False
 
-        # Crea el usuario ficticio
-        usuario = Usuario(
-            correo_usuario=correo_ficticio, 
-            usuario=usuario_ficticio, 
-            contrasena=str(uuid.uuid4()), # Contraseña aleatoria
-            foto=None, 
-            cve_tipo_usuario=cve_tipo_usuario
-        )
-        usuario.habilitado = False
-
-        db.session.add(usuario)
-        db.session.commit()
-
-        return usuario 
+            usuario_encontrado.correo_usuario = correo_ficticio
+            usuario_encontrado.usuario = usuario_ficticio
+            usuario_encontrado.contrasena = str(uuid.uuid4())
+            usuario_encontrado.ruta_foto_usuario = None
+            usuario_encontrado.cve_tipo_usuario = tipousuario_encontrado.cve_tipo_usuario
+            usuario_encontrado.habilitado = False
+            
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un problema: ", e) 
 
     @staticmethod
-    def consulta_por_correo(correo_usuario):
+    def obtener_usuario_por_correo(correo_usuario):
         """
         Busca un usuario por su correo.
 
@@ -203,7 +212,7 @@ class Usuario(db.Model, UserMixin):
             return None
 
     @staticmethod
-    def consulta_por_usuario(usuario):
+    def obtener_usuario_por_usuario(usuario):
         """
         Busca un usuario por su nombre de usuario.
 
@@ -222,45 +231,82 @@ class Usuario(db.Model, UserMixin):
         except NoResultFound:
             return None
 
-
     @staticmethod
     def es_usuario_habilitado(correo_usuario):
         """
         Consulta si un usuario está habilitado o no.
 
-        Argumentos:
+        Entrada:
             correo_usuario (str): El correo del usuario a consultar.
 
-        Retorno:
-            bool: True si el usuario está habilitado, False en caso contrario.
+        Retorno exitoso:
+            True: El usuario está habilitado
+            
+        Retorno fallido:
+            False: El usuario está deshabilitado.
         """
-        usuario = Usuario.consulta_por_correo(correo_usuario)
-        if usuario:
-            return usuario.habilitado
-        return False
+        try:
+            usuario = Usuario.obtener_usuario_por_correo(correo_usuario)
+            if usuario:
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
 
     @staticmethod
-    def consulta_por_tipo(cve_tipo_usuario):
+    def obtener_usuarios_por_tipousuario(cve_tipo_usuario):
         """
-        Consulta todos los usuarios que pertenecen a un tipo de usuario determinado.
+        Obtiene todos los usuarios que pertenecen a un tipo de usuario determinado.
 
-        Argumentos:
+        Entrada:
             cve_tipo_usuario (int): La clave del tipo de usuario a consultar.
 
-        Retorno:
+        Retorno exitoso:
             list: Una lista de instancias de Usuario que pertenecen al tipo de usuario especificado.
+            
+        Retorno fallido:
+            None: No se encontraron los usuarios.        
         """
-        usuarios = Usuario.query.filter_by(cve_tipo_usuario=cve_tipo_usuario).all()
-        return usuarios
+        try:
+            usuarios_encontrados = Usuario.query.filter_by(cve_tipo_usuario=cve_tipo_usuario).all()
+            if usuarios_encontrados:
+                return usuarios_encontrados
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
     
-    def deshabilitar_cuenta(self):
+    @staticmethod
+    def deshabilitar_usuario_cuenta(correo):
         """
-        Deshabilita la cuenta del usuario.
+        Deshabilita o habilita la cuenta del usuario.
 
-        Retorno:
-            str: Un mensaje indicando que la cuenta se deshabilitó con éxito.
-            int: Un código de estado HTTP 200.
+        Entrada:
+            correo (str): Correo de usuario a deshabilitar.
+            
+        Retorno exitoso:
+            True: Se ha deshabilitado o habilitado la cuenta.
+            
+        Retorno fallido:
+            False: Hubo un problema
         """
-        self.habilitado = False
-        db.session.commit()
-        return 'Cuenta deshabilitada con éxito', 200
+        try:
+            usuario_encontrado = Usuario.obtener_usuario_por_correo(correo)
+            
+            if Validacion.valor_nulo(usuario_encontrado):
+                return False
+            
+            if usuario_encontrado.habilitado:
+                usuario_encontrado.habilitado = False
+            else:
+                usuario_encontrado.habilitado = True
+            
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un problema: ", e)
+            return False
+

@@ -1,4 +1,6 @@
 from app import db
+from .calificacion import Calificacion
+from app.classes.validacion import Validacion
 
 class CalificacionHotel(db.Model):
     
@@ -6,77 +8,171 @@ class CalificacionHotel(db.Model):
     calidad_servicio = db.Column(db.Float, nullable=False)
     costo = db.Column(db.Float, nullable=False)
     limpieza = db.Column(db.Float, nullable=False)
-    
-    def __init__(self, cve_calificacion, calidad_servicio, costo, limpieza):
+  
+    def to_dict(self):
         """
-        Constructor para la clase CalificacionHotel.
-        
-        Argumentos:
-            cve_calificacion (int): Clave de la calificación.
-            calidad_servicio (float): Calificación para la calidad del servicio.
-            costo (float): Calificación para el costo.
-            limpieza (float): Calificación para la limpieza.
-        """
-        self.cve_calificacion = cve_calificacion
-        self.calidad_servicio = calidad_servicio
-        self.costo = costo
-        self.limpieza = limpieza
+        Convertir el objeto CalificacionHotel a un diccionario.
 
-    def modificar_calificacion(self, calidad_servicio=None, costo=None, limpieza=None):
+        Retorno:
+            dict: Diccionario que representa el CalificacionHotel.
+        """
+        return {
+            'cve_calificacion': self.cve_calificacion,
+            'calidad_servicio': self.calidad_servicio,
+            'costo': self.costo,
+            'limpieza': self.limpieza
+        }
+
+    @staticmethod
+    def agregar_calificacion(cve_calificacion, calidad_servicio, costo, limpieza):
+        """
+        Agrega calificación de restaurante.
+        
+        Entradas:
+            cve_calificacion (int): Clave de calificación.
+            calidad_servicio (float): Calificacion de servicio.
+            costo (float): Calificación de costo.
+            limpieza (float): Calificación de costo.
+            
+        Retorno exitoso:
+            True: Se agregó exitosamente.
+            
+        Retorno fallido:
+            False: Hubo un error.
+        """
+        try:
+            calificacion = Calificacion.obtener_calificacion(cve_calificacion)
+            
+            if Validacion.valor_nulo(calificacion):
+                return False
+            
+            nueva_calificacion = CalificacionHotel(
+                cve_calificacion = cve_calificacion,
+                calidad_servicio = calidad_servicio,
+                costo = costo,
+                limpieza = limpieza
+            )
+            
+            db.session.add(nueva_calificacion)
+            db.session.commit()
+            return True
+        
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+
+    @staticmethod
+    def modificar_calificacion(cve_calificacion, calidad_servicio=None, costo=None, limpieza=None):
         """
         Modifica la calificación del hotel. Solo los argumentos que no sean None serán modificados.
         
-        Argumentos:
-            calidad_servicio (float, optional): Nueva calificación para la calidad del servicio. Si es None, no se modificará.
-            costo (float, optional): Nueva calificación para el costo. Si es None, no se modificará.
-            limpieza (float, optional): Nueva calificación para la limpieza. Si es None, no se modificará.
+        Entradas obligatorias:
+            cve_calificacion (int): Clave de calificacion.
+            
+        Entradas opcionales:
+            calidad_servicio (float): Nueva calificación para la calidad del servicio.
+            costo (float): Nueva calificación para el costo.
+            limpieza (float): Nueva calificación para la limpieza.
+            
+        Retorno exitoso:
+            True: Se ha hecho la modificación exitosamente.
+        
+        Retorno fallido:
+            False: Hubo un error.
         """
-        if calidad_servicio is not None:
-            self.calidad_servicio = calidad_servicio
-        if costo is not None:
-            self.costo = costo
-        if limpieza is not None:
-            self.limpieza = limpieza
-        db.session.commit()
-
-    @classmethod
-    def eliminar_calificacion(cls, cve_calificacion):
+        try:
+            calificacion = CalificacionHotel.obtener_calificacionhotel_por_cve(cve_calificacion)
+            
+            if Validacion.valor_nulo(calidad_servicio):
+                return False
+            
+            if not Validacion.valor_nulo(calidad_servicio):
+                calificacion.calidad_servicio = calidad_servicio
+            if not Validacion.valor_nulo(costo):
+                calificacion.costo = costo
+            if not Validacion.valor_nulo(limpieza):
+                calificacion.limpieza = limpieza
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+        
+    @staticmethod
+    def eliminar_calificacion(cve_calificacion):
         """
-        Método para eliminar una calificación de un hotel.
+        Eliminar calificación de un hotel.
 
-        Argumentos:
+        Entrada:
             cve_calificacion (int): Clave de la calificación a eliminar.
 
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
+        Retorno exitoso:
+            True: Se ha eliminado correctamente.
+        
+        Retorno fallido:
+            False: Hubo un error.
         """
-        calificacion = cls.query.get(cve_calificacion)
-        if calificacion:
+        try:
+            
+            calificacion = CalificacionHotel.obtener_calificacionhotel_por_cve(cve_calificacion)
+            
+            if Validacion.valor_nulo(calificacion):
+                return False
+            
             db.session.delete(calificacion)
             db.session.commit()
-            return {'message': 'Calificación eliminada con éxito.'}, 200
-        return 'Calificación no encontrada', 404
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
 
     @staticmethod
-    def consultar_calificacion(cve_calificacion):
+    def obtener_calificacionhotel_por_cve(cve_calificacion):
         """
-        Consulta la calificación de un hotel por su clave de calificación.
-        
-        Argumentos:
+        Obtiene la calificación de un hotel.
+
+        Entrada:
             cve_calificacion (int): Clave de la calificación a consultar.
 
-        Retorno:
-            dict, int: Diccionario con los datos de la calificación y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
+        Retorno exitoso:
+            CalificacionHotel: Instancia de tipo CalificacionHotel.
+            
+        Retorno fallido:
+            None: Hubo un error o no existe.
         """
-        calificacion = CalificacionHotel.query.get(cve_calificacion)
-        if calificacion:
-            return {
-                'cve_calificacion': calificacion.cve_calificacion,
-                'calidad_servicio': calificacion.calidad_servicio,
-                'costo': calificacion.costo,
-                'limpieza': calificacion.limpieza
-            }, 200
-        else:
-            return 'Calificación no encontrada', 404
+        try:
+            calificacion = CalificacionHotel.query.get(cve_calificacion)
+            if calificacion:
+                return calificacion
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
 
-    
+    @staticmethod
+    def obtener_promedio(cve_calificacion):
+        """
+        Se obtiene el promedio de las calificaciones de una calificación.
+        
+        Entrada:
+            cve_calificacion (int): Clave de calificación.
+        
+        Retorno exitoso:
+            promedio (float): Promedio de las calificaciones.
+        
+        Retorno fallido:
+            None: Hubo un error.
+        """
+        try:
+            calificacion = CalificacionHotel.obtener_calificacionhotel_por_cve(cve_calificacion)
+            
+            if Validacion.valor_nulo(calificacion):
+                return None
+            
+            sum_total = calificacion.calidad_servicio + calificacion.costo + calificacion.limpieza
+            return float(sum_total) / 3
+        
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None

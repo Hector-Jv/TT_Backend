@@ -1,5 +1,5 @@
 from app import db
-from sqlalchemy.exc import IntegrityError
+from app.classes.validacion import Validacion
 
 class SitioEtiqueta(db.Model):
     cve_sitio = db.Column(db.Integer, primary_key=True)
@@ -59,38 +59,56 @@ class SitioEtiqueta(db.Model):
             return False
 
     @staticmethod
-    def eliminar_relacion(cls, cve_sitio, cve_etiqueta):
+    def eliminar_relacion(cve_sitio, cve_etiqueta):
         """
-        Método para eliminar una relación entre un sitio y una etiqueta.
+        Eliminar una relación entre un sitio y una etiqueta.
 
-        Argumentos:
+        Entrada:
             cve_sitio (int): Clave del sitio de la relación a eliminar.
             cve_etiqueta (int): Clave de la etiqueta de la relación a eliminar.
 
-        Retorno:
-            str, int: Mensaje de éxito y código de estado HTTP, o mensaje de error y código de estado en caso de fallo.
+        Retorno exitoso:
+            True: Se elimino correctamente.
+        
+        Retorno fallido:
+            False: Hubo un error.
         """
-        relacion = cls.query.get((cve_sitio, cve_etiqueta))
-        if relacion:
-            db.session.delete(relacion)
-            db.session.commit()
-            return 'Relación eliminada con éxito', 200
-        else:
-            return 'Relación no encontrada', 404
+        try:
+            relacion_encontrada = SitioEtiqueta.obtener_relacion_etiqueta_y_sitio(cve_etiqueta=cve_etiqueta, cve_sitio=cve_sitio)
+        
+            if not Validacion.valor_nulo(relacion_encontrada):
+                db.session.delete(relacion_encontrada)
+                db.session.commit()
+                return True
+            else:
+                return False
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
 
     @staticmethod
-    def consultar_relaciones_por_sitio(cve_sitio):
+    def obtener_relaciones_por_cvesitio(cve_sitio):
         """
-        Método para consultar todas las relaciones de un sitio por su clave.
+        Obtener todas las relaciones de un sitio por su clave.
 
-        Argumentos:
+        Entrada:
             cve_sitio (int): Clave del sitio a consultar.
 
-        Retorno:
-            list, int: Lista de diccionarios con las claves de las etiquetas relacionadas y código de estado HTTP.
+        Retorno exitoso:
+            list: Lista de instancia de tipo SitioEtiqueta.
+            
+        Retorno fallido:
+            None: Hubo un error o no se encontraron relaciones.
         """
-        relaciones = SitioEtiqueta.query.filter_by(cve_sitio=cve_sitio).all()
-        return [{'cve_sitio': relacion.cve_sitio, 'cve_etiqueta': relacion.cve_etiqueta} for relacion in relaciones], 200
+        try:
+            relaciones_encontradas = SitioEtiqueta.query.filter_by(cve_sitio=cve_sitio).all()
+            if not Validacion.valor_nulo(relaciones_encontradas):
+                return relaciones_encontradas
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return None
 
     @staticmethod
     def obtener_relaciones_por_cveetiqueta(cve_etiqueta):
@@ -101,15 +119,16 @@ class SitioEtiqueta(db.Model):
             cve_etiqueta (int): Clave de la etiqueta a consultar.
 
         Retorno exitoso:
-            list: Lista de diccionarios con las claves de los sitios relacionados.
+            list: Lista de instancias de tipo SitioEtiqueta.
         
         Retorno fallido:
             None: No se encontraron relaciones o hubo un error.
         """
         try:
             relaciones_encontradas_sitioetiqueta = SitioEtiqueta.query.filter_by(cve_etiqueta=cve_etiqueta).all()
-            if relaciones_encontradas_sitioetiqueta:
-                return [relacion.to_dict for relacion in relaciones_encontradas_sitioetiqueta]
+            
+            if not Validacion.valor_nulo(relaciones_encontradas_sitioetiqueta):
+                return relaciones_encontradas_sitioetiqueta
             else:
                 return None
         except Exception as e:
@@ -117,26 +136,27 @@ class SitioEtiqueta(db.Model):
             return None
         
     @staticmethod
-    def existe_relacion_etiqueta_y_sitio(cve_etiqueta, cve_sitio):
+    def obtener_relacion_etiqueta_y_sitio(cve_etiqueta, cve_sitio):
         """
-        Verifica si hay una relación de una etiqueta y un sitio.
+        Obtiene la relación de una etiqueta y un sitio.
 
         Entrada:
             cve_etiqueta (int): Clave de la etiqueta a consultar.
             cve_sitio (int): Clave del sitio a consultar.
 
         Retorno exitoso:
-            True: Existe una relación.
+            SitioEtiqueta: Instancia SitioEtiqueta
         
         Retorno fallido:
-            False: No existe una relación.
+            None: No existe una relación o hubo un error
         """
         try:
-            if SitioEtiqueta.query.filter_by(cve_sitio=cve_sitio, cve_etiqueta=cve_etiqueta).first():
-                return True
+            relacion_encontrada = SitioEtiqueta.query.filter_by(cve_sitio=cve_sitio, cve_etiqueta=cve_etiqueta).first()
+            if not Validacion.valor_nulo(relacion_encontrada):
+                return relacion_encontrada
             else:
-                return False
+                return None
         except Exception as e:
             print("Hubo un error: ", e)
-            return False
+            return None
             

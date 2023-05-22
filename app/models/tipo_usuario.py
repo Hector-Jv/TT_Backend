@@ -1,83 +1,121 @@
 from app import db
+from app.classes.validacion import Validacion
 
 class TipoUsuario(db.Model):
-    """
-    Modelo para tipos de usuarios en la aplicación.
-
-    Atributos:
-        cve_tipo_usuario (int): Clave única para cada tipo de usuario.
-        tipo_usuario (str): Nombre del tipo de usuario.
-    """
-    
     cve_tipo_usuario = db.Column(db.Integer, primary_key=True)
     tipo_usuario = db.Column(db.String(50), nullable=False)
     
-    
-    @staticmethod
-    def agregar_tipo_usuario(tipo_usuario):
+    def to_dict(self):
         """
-        Agrega el tipo de usuario a la base de datos.
-        """
-        nuevo_tipo_usuario = TipoUsuario(tipo_usuario=tipo_usuario) 
-        db.session.add(nuevo_tipo_usuario)  
-        db.session.commit()
-    
-    def eliminar_tipo_usuario(self):
-        """
-        Elimina el tipo de usuario actual de la base de datos.
+        Convertir el objeto del TipoUsuario a un diccionario.
 
         Retorno:
-            str: Mensaje indicando que el tipo de usuario se eliminó con éxito.
-            int: Código de estado HTTP 200.
+            dict: Diccionario que representa el TipoUsuario.
         """
-        db.session.delete(self)
-        db.session.commit()
-        return 'Tipo usuario eliminado.', 200
+        return {
+            'cve_tipo_usuario': self.cve_tipo_usuario,
+            'tipo_usuario': self.tipo_usuario
+        }
     
     @staticmethod
-    def obtener_tipo_usuario(cve_tipo_usuario):
+    def agregar_tipousuario(tipo_usuario):
         """
-        Obtiene un tipo de usuario por su clave única.
+        Agregar tipo de usuario a la base de datos.
+        
+        Entrada:
+            tipo_usuario (str): tipo de usuario a agregar.
+        
+        Retorno exitoso:
+            True: Se ha agregado exitosamente a la base de datos.
+            
+        Retorno fallido:
+            False: No se pudo agregar a la base de datos.
+        """
+        try:
+            tipousuario_encontrado = TipoUsuario.obtener_tipousuario_por_nombre(tipo_usuario)
+            
+            if not Validacion.valor_nulo(tipousuario_encontrado):
+                return False
+            
+            nuevo_tipousuario = TipoUsuario(tipo_usuario=tipo_usuario) 
+            db.session.add(nuevo_tipousuario)  
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+    
+    @staticmethod
+    def eliminar_tipousuario(cve_tipo_usuario):
+        """
+        Elimina el tipo de usuario de la base de datos.
+
+        Entrada:
+            cve_tipo_usuario (str): Clave del tipo usuario a eliminar.
+            
+        Retorno exitoso:
+            True: Se ha eliminado correctamente.
+            
+        Retorno fallido:
+            False: Hubo un error.
+        """
+        try:
+            tipousuario_encontrado = TipoUsuario.obtener_tipousuario_por_cve(cve_tipo_usuario)
+
+            if Validacion.valor_nulo(tipousuario_encontrado):
+                return False
+            
+            db.session.delete(tipousuario_encontrado)
+            db.session.commit()
+            return True
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+    
+    @staticmethod
+    def obtener_tipousuario_por_nombre(tipo_usuario):
+        """
+        Obtiene tipo de usuario por su nombre.
 
         Argumentos:
-            cve_tipo_usuario (int): La clave única del tipo de usuario a obtener.
+            tipo_usuario (str): El nombre del tipo de usuario.
 
-        Retorno:
-            TipoUsuario: El objeto TipoUsuario correspondiente a la clave proporcionada, o None si no se encuentra.
+        Retorno exitoso:
+            TipoUsuario: Objeto TipoUsuario.
+        
+        Retorno fallido:
+            None: No se encontró o hubo un error.
         """
-        tipo_usuario = TipoUsuario.query.get(cve_tipo_usuario)
-        if tipo_usuario is None:
+        try:
+            tipo_usuario = TipoUsuario.query.filter_by(tipo_usuario=tipo_usuario).first()
+            if not Validacion.valor_nulo(tipo_usuario):
+                return tipo_usuario
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
             return None
-        return tipo_usuario
     
     @staticmethod
-    def obtener_id_tipo_usuario(tipo):
+    def obtener_tipousuario_por_cve(cve_tipo_usuario):
         """
-        Obtiene la clave única de un tipo de usuario por su nombre.
+        Obtiene el tipo de usuario por su clave única.
 
-        Argumentos:
-            tipo (str): El nombre del tipo de usuario.
+        Entrada:
+            cve_tipo_usuario (int): La clave única del tipo de usuario.
 
-        Retorno:
-            int: La clave única del tipo de usuario, o None si no se encuentra.
+        Retorno exitoso:
+            TipoUsuario: Objeto TipoUsuario.
+            
+        Retorno fallido:
+            None: No se encontró o hubo un error.
         """
-        tipo_usuario = TipoUsuario.query.filter_by(tipo_usuario=tipo).first()
-        if tipo_usuario is None:
+        try:
+            tipousuario_encontrado = TipoUsuario.query.get(cve_tipo_usuario)
+            if not Validacion.valor_nulo(tipousuario_encontrado):
+                return tipousuario_encontrado
+            else:
+                return None
+        except Exception as e:
+            print("Hubo un error: ", e)
             return None
-        return tipo_usuario.cve_tipo_usuario
-    
-    @staticmethod
-    def obtener_nombre_tipo_usuario(id):
-        """
-        Obtiene el nombre de un tipo de usuario por su clave única.
-
-        Argumentos:
-            id (int): La clave única del tipo de usuario.
-
-        Retorno:
-            str: El nombre del tipo de usuario, o None si no se encuentra.
-        """
-        tipo_usuario = TipoUsuario.query.get(id)
-        if tipo_usuario is None:
-            return None
-        return tipo_usuario.tipo_usuario
