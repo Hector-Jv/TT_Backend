@@ -1,19 +1,12 @@
 from PIL import Image
-import os, uuid
+import os
 from flask import current_app
 from werkzeug.utils import secure_filename
 
 class Imagen():
     
-    def __init__ (self, foto):
-        """
-        Inicializa la clase Imagen con la foto proporcionada.
-        """
-        self.foto = foto
-        self.nombre_foto = None
-        self.ruta_foto = None
-
-    def verificar_extension(self):
+    @staticmethod
+    def verificar_extension(foto):
         """
         Verifica que la foto tenga una extensión válida.
         
@@ -24,49 +17,57 @@ class Imagen():
             False: No tiene extensión válida.
         """
         extensiones_validas = {'png', 'jpg', 'jpeg', 'gif'}
-        if '.' in self.foto.filename and self.foto.filename.rsplit('.', 1)[1].lower() in extensiones_validas:
+        if '.' in foto.filename and foto.filename.rsplit('.', 1)[1].lower() in extensiones_validas:
             return True
         return False
-        
-    def tamaño_permitido(self):
-        """
-        Verifica que la foto tenga el tamaño permitido.
-        
-        Retorno exitoso:
-            True: Tiene un tamaño permitido.
-        
-        Retorno fallido:
-            False: No tiene un tamaño permitido.
-        """
+    
+    @staticmethod
+    def tamaño_permitido(foto):
         tamaño_maximo = 1 * 1024 * 1024 # 1 Mb
-        if tamaño_maximo > len(self.foto.read()):
+        if tamaño_maximo > len(foto.read()):
+            foto.seek(0)  # restablece el apuntador del archivo a la posición inicial
             return True
+        foto.seek(0)  # restablece el apuntador del archivo a la posición inicial
         return False
 
-    def validar_imagen(self):
-        """
-        Trata de abrir la imagen para comprobar que no haya errores.
-        
-        Retorno Exitoso:
-            True: Se pudo abrir la imagen.
-        
-        Retorno Fallido:
-            False: No se pudo abrir la imagen
-        """
+    @staticmethod
+    def validar_imagen(foto):
         try:
-            Image.open(self.foto.stream) 
+            Image.open(foto.stream)
+            foto.seek(0)  # restablece el apuntador del archivo a la posición inicial
             return True
         except:
+            foto.seek(0)  # restablece el apuntador del archivo a la posición inicial
             return False
 
-    def guardar(self, nombre_ruta):
+    @staticmethod
+    def guardar(foto, nombre_usuario, ruta):
         """
         Guarda la imagen en la ruta proporcionada.
         """
-        nombre_imagen = secure_filename(self.foto.filename)
-        nombre_unico = str(uuid.uuid4()) + "_" + nombre_imagen
         
-        self.foto.save(os.path.join(current_app.config[nombre_ruta], nombre_unico))
-        self.ruta_foto = os.path.join(current_app.config[nombre_ruta], nombre_unico)
+        carpeta_usuario = os.path.join(current_app.config[ruta], nombre_usuario)
+        print("Carpeta usuario: ", carpeta_usuario)
+        if not os.path.exists(carpeta_usuario):
+            os.makedirs(carpeta_usuario)
+        nombre_imagen = secure_filename(foto.filename)
+        print("Nombre imagen: ", nombre_imagen)
+        foto.save(os.path.join(carpeta_usuario, nombre_imagen))
+        print("Ruta: ", os.path.join(carpeta_usuario, nombre_imagen).replace('\\', '/'))
+        return os.path.join(carpeta_usuario, nombre_imagen), nombre_imagen
         
-        ## self.nombre_foto = nombre_unico
+        """
+        
+        archivo = request.files['foto_usuario']
+        print("Archivo: ", archivo)
+        if archivo.filename != '':
+            filename = secure_filename(archivo.filename)
+            archivo.save(os.path.join(current_app.config['IMG_COMENTARIOS'], filename))
+            ruta_foto_usuario = os.path.join(current_app.config['IMG_COMENTARIOS'], filename)
+        """
+        
+        filename = secure_filename(self.foto.filename)
+        
+        self.foto.save(os.path.join(current_app.config[self.ruta], filename))
+        return os.path.join(current_app.config[self.ruta], filename)
+        

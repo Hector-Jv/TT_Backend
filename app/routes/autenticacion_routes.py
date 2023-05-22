@@ -1,5 +1,6 @@
 import os
-from flask import Blueprint, current_app, jsonify, request, url_for
+from os import getcwd
+from flask import Blueprint, current_app, jsonify, redirect, request, url_for, send_from_directory
 from flask_jwt_extended import create_access_token
 from app import db
 from app.models import Usuario, TipoUsuario
@@ -47,7 +48,6 @@ def registrar_usuario():
     
     ## Datos necesarios ##
     correo = request.form['correo']
-    print("Request form: ", request.form['correo'])
     usuario = request.form['usuario']
     contrasena = request.form['contrasena']
 
@@ -76,26 +76,25 @@ def registrar_usuario():
     
     from werkzeug.utils import secure_filename
     ## Manejo de imagen ##
-    
-    print("Request.files: ", request.files)
 
-    if 'foto_usuario' in request.files:  
-        
+    if 'foto_usuario' in request.files:
         archivo = request.files['foto_usuario']
         print("Archivo: ", archivo)
         if archivo.filename != '':
-            filename = secure_filename(archivo.filename)
-            archivo.save(os.path.join(current_app.config['IMG_COMENTARIOS'], filename))
-            ruta_foto_usuario = os.path.join(current_app.config['IMG_COMENTARIOS'], filename)
-        """
-        nueva_imagen: Imagen = Imagen(
-            foto = archivo
-        )
-        
-        if not nueva_imagen.tamaño_permitido() and not nueva_imagen.verificar_extension() and not nueva_imagen.validar_imagen():
-            return jsonify({"error": "La imagen ingresada no es válida."}), 400
-        nueva_imagen.guardar("IMG_USUARIOS")
-        """
+            
+            if not Imagen.verificar_extension(archivo):
+                return jsonify({"error": "La imagen no tiene una extensión válida. "}), 400
+            
+            if not Imagen.tamaño_permitido(archivo):
+                return jsonify({"error": "La imagen es demasiado grande. "}), 400
+            
+            if not Imagen.validar_imagen(archivo):
+                return jsonify({"error": "Hubo un problema al intentar abrir la imagen. "}), 400
+            
+            ruta_foto_usuario, nombre_imagen = Imagen.guardar(foto=archivo, nombre_usuario=usuario, ruta="IMG_USUARIOS")
+
+        else:
+            ruta_foto_usuario = None
     else:
         ruta_foto_usuario = None
         
@@ -106,9 +105,25 @@ def registrar_usuario():
         usuario = usuario,
         contrasena = contrasena,
         ruta_foto_usuario = ruta_foto_usuario
+        
     ): 
         return jsonify({"error": "Hubo un error al guardar el usuario en la base de datos. "}), 400
 
     usuario_encontrado: Usuario = Usuario.obtener_usuario_por_correo(correo)
     
-    return jsonify({"usuario": usuario_encontrado.usuario, "correo_usuario": usuario_encontrado.correo_usuario, "mensaje": "Te has registrado con exito"}),  201
+    return jsonify({"image_url": url_for('static', filename='usuarios/' + usuario + '/' + nombre_imagen)}), 201
+
+    # return ({"usuario": usuario_encontrado.usuario, "correo_usuario": usuario_encontrado.correo_usuario, "mensaje": "Te has registrado con exito"}),  201
+
+
+from flask import send_from_directory
+
+PATH_FILE = getcwd() + "/static/"
+
+@autenticacion_bp.route('/imagen/<string:nombre_imagen>')  
+def obtener_imagen(nombre_imagen):
+    print("PATH_FILE: ", PATH_FILE)
+    return send_from_directory(PATH_FILE, path=nombre_imagen, as_attachment=False)
+
+
+    
