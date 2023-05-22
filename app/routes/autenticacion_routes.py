@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, request
+import os
+from flask import Blueprint, current_app, jsonify, request, url_for
 from flask_jwt_extended import create_access_token
 from app import db
 from app.models import Usuario, TipoUsuario
@@ -41,14 +42,14 @@ def inicio_sesion():
     else:
         return jsonify({"error": "No se pudo acceder a la cuenta."}), 403
 
-@autenticacion_bp.route('/registro', methods=['POST'])
+@autenticacion_bp.route('/registro', methods=['GET','POST'])
 def registrar_usuario():
     
     ## Datos necesarios ##
     correo = request.form['correo']
+    print("Request form: ", request.form['correo'])
     usuario = request.form['usuario']
     contrasena = request.form['contrasena']
-    archivo = request.files['imagen']
 
     ## Validaciones ##
 
@@ -62,6 +63,7 @@ def registrar_usuario():
         return jsonify({"error": "La contraseña debe contener al menos 8 caracteres, una letra mayúscula, un número y un carácter especial."}), 400
 
     usuario_encontrado: Usuario = Usuario.obtener_usuario_por_correo(correo)
+ 
     
     if not Validacion.valor_nulo(usuario_encontrado):
         return jsonify({"error": "Ya existe el correo ingresado."}), 404
@@ -70,16 +72,32 @@ def registrar_usuario():
     
     if not Validacion.valor_nulo(usuario_encontrado):
         return jsonify({"error": "Ya existe el usuario ingresado."}), 404
+ 
     
-    if Validacion.datos_necesarios(archivo) or not Validacion.valor_nulo(archivo):
+    from werkzeug.utils import secure_filename
+    ## Manejo de imagen ##
+    
+    print("Request.files: ", request.files)
+
+    if 'foto_usuario' in request.files:  
+        
+        archivo = request.files['foto_usuario']
+        print("Archivo: ", archivo)
+        if archivo.filename != '':
+            filename = secure_filename(archivo.filename)
+            archivo.save(os.path.join(current_app.config['IMG_COMENTARIOS'], filename))
+            ruta_foto_usuario = os.path.join(current_app.config['IMG_COMENTARIOS'], filename)
+        """
         nueva_imagen: Imagen = Imagen(
             foto = archivo
         )
         
         if not nueva_imagen.tamaño_permitido() and not nueva_imagen.verificar_extension() and not nueva_imagen.validar_imagen():
             return jsonify({"error": "La imagen ingresada no es válida."}), 400
-
         nueva_imagen.guardar("IMG_USUARIOS")
+        """
+    else:
+        ruta_foto_usuario = None
         
     ## Creacion de usuario ##
     
@@ -87,10 +105,10 @@ def registrar_usuario():
         correo_usuario = correo,
         usuario = usuario,
         contrasena = contrasena,
-        ruta_foto_usuario = nueva_imagen.ruta_foto
+        ruta_foto_usuario = ruta_foto_usuario
     ): 
         return jsonify({"error": "Hubo un error al guardar el usuario en la base de datos. "}), 400
 
     usuario_encontrado: Usuario = Usuario.obtener_usuario_por_correo(correo)
     
-    return jsonify({"usuario": usuario_encontrado.usuario, "correo_usuario": usuario_encontrado.correo}),  201
+    return jsonify({"usuario": usuario_encontrado.usuario, "correo_usuario": usuario_encontrado.correo_usuario}),  201

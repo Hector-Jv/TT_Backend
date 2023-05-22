@@ -9,3 +9,4 @@ from .crud_sitio_routes import crud_sitio_bp
 """
 
 from .autenticacion_routes import autenticacion_bp
+from .consulta_sitios_routes import sitios_bp

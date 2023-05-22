@@ -96,14 +96,14 @@ class Usuario(db.Model, UserMixin):
             if not Validacion.formato_correo(correo_usuario):
                 return False
             
-            tipousuario_encontrado = TipoUsuario.obtener_nombre_tipo_usuario("Usuario registrado")
+            tipousuario_encontrado = TipoUsuario.obtener_tipousuario_por_nombre("Usuario registrado")
             
             nuevo_usuario = Usuario(
                 correo_usuario = correo_usuario,
                 usuario = usuario,
                 contrasena = contrasena,
                 ruta_foto_usuario = ruta_foto_usuario,
-                cve_tipo_usuario = tipousuario_encontrado.tipo_usuario,
+                cve_tipo_usuario = tipousuario_encontrado.cve_tipo_usuario,
                 habilitado = True
             )
             db.session.add(nuevo_usuario)
@@ -111,7 +111,7 @@ class Usuario(db.Model, UserMixin):
             return True
             
         except Exception as e:
-            print("Hubo un error: ", e)
+            print("Hubo un error en la funcion agregar_usuario: ", e)
             return False
     
     @staticmethod

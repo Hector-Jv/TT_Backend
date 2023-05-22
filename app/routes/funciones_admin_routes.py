@@ -5,35 +5,35 @@ from app.classes.imagen import Imagen
 from app.models import Sitio, Delegacion, Colonia, Horario, TipoSitio, Etiqueta, Servicio, ServicioHotel, SitioEtiqueta, FotoSitio
 from app.classes.validacion import Validacion
 
-crud_sitio_bp = Blueprint('sitio crud', __name__)
+fun_admin_bp = Blueprint('Funciones administrador', __name__)
 
-@crud_sitio_bp.route('/sitio', methods=['POST'])
+@fun_admin_bp.route('/sitio', methods=['POST'])
 def crear_sitio():
     
     ##  Datos obligatorios ##
+    archivo = request.files['imagen']
     
-    data = request.get_json()
-    nombre_sitio = data.get('nombre_sitio') # str
-    x_longitud = data.get('x_longitud') # float
-    y_latitud = data.get('y_latitud') # float
-    direccion = data.get('direccion') # str
-    cve_tipo_sitio = data.get('cve_tipo_sitio') # int
-    cve_delegacion = data.get('cve_delegacion') #int
-    colonia = data.get('colonia') # str
+    nombre_sitio = request.form['nombre_sitio']
+    x_longitud = request.form['x_longitud']
+    y_latitud = request.form['y_latitud']
+    direccion = request.form['direccion']
+    cve_tipo_sitio = request.form['cve_tipo_sitio']
+    cve_delegacion = request.form['cve_delegacion']
+    colonia = request.form['colonia']
     
     ## Datos opcionales ##
     
-    fecha_actualizacion = data.get('fecha_actualizacion', datetime.utcnow()) # datetime
-    descripcion = data.get('descripcion') # str
-    correo_sitio = data.get('correo_sitio') # str
-    fecha_fundacion = data.get('fecha_fundacion') # datetime
-    costo_promedio = data.get('costo_promedio') # float
-    pagina_web = data.get('pagina_web') # str
-    telefono = data.get('telefono') # str
-    adscripcion = data.get('adscripcion') # str
-    horarios = data.get('horarios') # list
-    etiquetas = data.get('etiquetas') # list
-    servicios = data.get('servicios') # list
+    fecha_actualizacion = request.form['fecha_actualizacion'] # = data.get('', datetime.utcnow()) # datetime
+    descripcion = request.form['descripcion']
+    correo_sitio = request.form['correo_sitio']
+    fecha_fundacion = request.form['fecha_fundacion']
+    costo_promedio = request.form['costo_promedio']
+    pagina_web = request.form['pagina_web']
+    telefono = request.form['telefono']
+    adscripcion = request.form['adscripcion']
+    horarios = request.form['horarios']
+    etiquetas = request.form['etiquetas']
+    servicios = request.form['servicios']
     
     ## Validacion de los datos ##
     
