@@ -139,7 +139,7 @@ def mostrar_sitios_con_filtros():
 @sitios_bp.route('/mostrar_sitio', methods=["GET"])
 def mostrar_info_sitio():
     
-    data = request.request.get_json()
+    data = request.get_json()
     cve_sitio = int(data.get(cve_sitio))
     
     info_sitio: dict = {}
