@@ -164,7 +164,7 @@ class Servicio(db.Model):
             list: Lista de instancias de tipo Servicio.
             
         Retorno fallido:
-            None: No se encontraron instancias o hubo un error.
+            list: No se encontraron instancias o hubo un error.
         """
         try:
             servicios_encontrados = Servicio.query.all()
@@ -172,7 +172,7 @@ class Servicio(db.Model):
             if not Validacion.valor_nulo(servicios_encontrados):
                 return servicios_encontrados
             else:
-                return None
+                return []
         except Exception as e:
             print("Hubo un error: ", e)
-            return None
+            return []

@@ -12,7 +12,7 @@ class Sitio(db.Model):
     direccion = db.Column(db.String(400), nullable=False)
     
     fecha_actualizacion = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    descripcion = db.Column(db.String(400), nullable=True)
+    descripcion = db.Column(db.String(800), nullable=True)
     correo_sitio = db.Column(db.String(100), nullable=True)
     fecha_fundacion = db.Column(db.DateTime, nullable=True)
     costo_promedio = db.Column(db.Float(5), nullable=True)
@@ -55,7 +55,7 @@ class Sitio(db.Model):
         }
     
     @staticmethod
-    def agregar_sitio(nombre_sitio, x_longitud, y_latitud, direccion, cve_tipo_sitio, cve_colonia, descripcion=None, correo_sitio=None, fecha_fundacion=None, costo_promedio=None, pagina_web=None, telefono=None, adscripcion=None):
+    def agregar_sitio(nombre_sitio: str, x_longitud: float, y_latitud: float, direccion: str, cve_tipo_sitio: int, cve_colonia: int, descripcion: str=None, correo_sitio:str=None, fecha_fundacion:datetime=None, costo_promedio:float=None, pagina_web:str=None, telefono:str=None, adscripcion:str=None):
         """
         Agregar un nuevo sitio a la base de datos.
         

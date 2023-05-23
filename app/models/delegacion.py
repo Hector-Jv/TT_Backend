@@ -37,25 +37,25 @@ class Delegacion(db.Model):
             return False
         
     @staticmethod
-    def mostrar_todos_las_delegaciones():
+    def obtener_todos_las_delegaciones():
         """
-        Muestra todas las delegaciones guardadas en la base de datos.
+        Obtiene todas las delegaciones guardadas en la base de datos.
 
         Retorno exitoso:
             list: Lista de todas las delegaciones.
         
         Retorno fallido:
-            None: No se encontraron delegaciones guardadas.
+            list: Lista vacía
         """
         try:
             delegaciones = Delegacion.query.all()
             if delegaciones:
                 return delegaciones
             else:
-                return None
+                return []
         except Exception as e:
             print("Hubo un error: ", e)
-            return None
+            return []
 
     @staticmethod
     def obtener_delegacion_por_cve(cve):

@@ -133,18 +133,18 @@ class Etiqueta(db.Model):
             list: Lista de instancias de tipo Etiqueta.
         
         Retorno fallido:
-            None: Hubo un error o no hay etiquetas registradas.
+            list: Hubo un error o no hay etiquetas registradas.
         """
         try:  
             etiquetas_encontradas = Etiqueta.query.all()
             
             if Validacion.valor_nulo(etiquetas_encontradas):
-                return None
+                return []
             
             return etiquetas_encontradas
         except Exception as e:
             print("Hubo un error: ", e)
-            return None
+            return []
 
     @staticmethod
     def obtener_etiqueta_por_nombre(nombre_etiqueta):

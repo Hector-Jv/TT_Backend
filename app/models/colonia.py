@@ -109,7 +109,7 @@ class Colonia(db.Model):
             nombre (str): Nombre de la colonia a buscar.
 
         Retorno exitoso:
-            dict: Diccionario con los datos de la colonia encontrada.
+            Colonia: Instancia de tipo Colonia
             
         Retorno fallido:
             None: No se encontró los datos de la colonia ingresada.

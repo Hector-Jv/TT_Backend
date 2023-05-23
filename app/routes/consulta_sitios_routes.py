@@ -10,19 +10,21 @@ sitios_bp = Blueprint('consulta sitios', __name__)
 def mostrar_sitios():
     
     ## Se obtienen los datos ##
-    
     data = request.get_json()
     tipo_sitio = data.get("cve_tipo_sitio")
-    opcion_ordenamiento = request.get("ordenamiento", default=1)
+    opcion_ordenamiento = data.get("ordenamiento")
+    
+    if opcion_ordenamiento is None:
+        opcion_ordenamiento = 1
 
     ## Se busca la información ##
     
-    lista_sitios_encontrados = Sitio.obtener_sitios_por_tipositio(int(tipo_sitio))
+    lista_sitios_encontrados = Sitio.obtener_sitios_por_tipositio(tipo_sitio)
     
     lista_sitios_dict = []
     
     for sitio in lista_sitios_encontrados:
-        tipo_sitio_encontrado = TipoSitio.obtener_tipositio_por_cve(sitio.tipo_sitio)
+        tipo_sitio_encontrado = TipoSitio.obtener_tipositio_por_cve(sitio.cve_tipo_sitio)
         colonia_encontrada = Colonia.obtener_colonia_por_cve(sitio.cve_colonia)
         delegacion_encontrada = Delegacion.obtener_delegacion_por_cve(colonia_encontrada.cve_delegacion)
         fotositio_encontrada = FotoSitio.obtener_fotositio_por_cve(sitio.cve_sitio)
@@ -53,10 +55,12 @@ def mostrar_sitios():
         sitio_dict["delegacion"] = delegacion_encontrada.nombre_delegacion
         sitio_dict["num_visitas"] = visitas
         sitio_dict["calificacion"] = promedio
-        sitio_dict["foto"] = fotositio_encontrada.ruta_sitio
+        sitio_dict["foto"] = None
+        if fotositio_encontrada is not None:
+            sitio_dict["foto"] = [foto.nombre_imagen for foto in fotositio_encontrada]
         
         lista_sitios_dict.append(sitio_dict)
-
+        
     """
     # Ordenar los datos.
     if opcion_ordenamiento == 1: # Ordenamiento por calificacion (por defecto)

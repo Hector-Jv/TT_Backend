@@ -1,12 +1,10 @@
 from app import db
 from flask import current_app
 from .sitio import Sitio
-import os
 from app.classes.validacion import Validacion
 
 class FotoSitio(db.Model):
     cve_foto_sitio = db.Column(db.Integer, primary_key=True)
-    ruta_sitio = db.Column(db.String(500), nullable=False)
     nombre_imagen = db.Column(db.String(300), nullable=False)
     cve_sitio = db.Column(db.Integer, db.ForeignKey('sitio.cve_sitio'), nullable=False)
     
@@ -21,18 +19,16 @@ class FotoSitio(db.Model):
         """
         return {
             'cve_foto_sitio': self.cve_foto_sitio,
-            'ruta_sitio': self.ruta_sitio,
             'nombre_imagen': self.nombre_imagen,
             'cve_sitio': self.cve_sitio
         }
     
     @staticmethod
-    def guardar_imagen(ruta_sitio, nombre_imagen, cve_sitio):
+    def guardar_imagen(nombre_imagen, cve_sitio):
         """
         Guarda la ruta de la imagen asociada a un sitio en la base de datos.
 
         Entrada:
-        ruta_sitio (str): Ruta de la imagen
         nombre_imagen (str): Nombre de la imagen
         cve_sitio (int): La clave del sitio asociado a la imagen.
 
@@ -49,7 +45,6 @@ class FotoSitio(db.Model):
                 return False
         
             foto_nueva = FotoSitio(
-                ruta_sitio = ruta_sitio,
                 nombre_imagen = nombre_imagen,
                 cve_sitio = cve_sitio
             )
@@ -88,8 +83,10 @@ class FotoSitio(db.Model):
             print("Hubo un error: ",e)
             return False
 
+
+
     @staticmethod
-    def obtener_fotositio_por_cve(cve_foto_sitio):
+    def obtener_fotositio_por_cve(cve_sitio):
         """
         Obtiene las fotos asociadas a un sitio en particular.
 
@@ -103,7 +100,7 @@ class FotoSitio(db.Model):
             None: Hubo un error o no se encuentra.
         """
         try:
-            fotositio_encontrado = FotoSitio.query.get(cve_foto_sitio)
+            fotositio_encontrado = FotoSitio.query.filter_by(cve_sitio=cve_sitio).all()
             
             if Validacion.valor_nulo(fotositio_encontrado):
                 return None

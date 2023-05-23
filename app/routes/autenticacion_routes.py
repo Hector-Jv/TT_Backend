@@ -73,8 +73,6 @@ def registrar_usuario():
     if not Validacion.valor_nulo(usuario_encontrado):
         return jsonify({"error": "Ya existe el usuario ingresado."}), 404
  
-    
-    from werkzeug.utils import secure_filename
     ## Manejo de imagen ##
 
     if 'foto_usuario' in request.files:
@@ -91,7 +89,7 @@ def registrar_usuario():
             if not Imagen.validar_imagen(archivo):
                 return jsonify({"error": "Hubo un problema al intentar abrir la imagen. "}), 400
             
-            ruta_foto_usuario, nombre_imagen = Imagen.guardar(foto=archivo, nombre_usuario=usuario, ruta="IMG_USUARIOS")
+            nombre_imagen = Imagen.guardar(foto=archivo, nombre_usuario=usuario, ruta="IMG_USUARIOS")
 
         else:
             ruta_foto_usuario = None
@@ -104,25 +102,22 @@ def registrar_usuario():
         correo_usuario = correo,
         usuario = usuario,
         contrasena = contrasena,
-        ruta_foto_usuario = ruta_foto_usuario
-        
+        nombre_imagen = nombre_imagen
     ): 
         return jsonify({"error": "Hubo un error al guardar el usuario en la base de datos. "}), 400
 
     usuario_encontrado: Usuario = Usuario.obtener_usuario_por_correo(correo)
     
-    return jsonify({"image_url": url_for('static', filename='usuarios/' + usuario + '/' + nombre_imagen)}), 201
-
-    # return ({"usuario": usuario_encontrado.usuario, "correo_usuario": usuario_encontrado.correo_usuario, "mensaje": "Te has registrado con exito"}),  201
+    return ({"correo_usuario": usuario_encontrado.correo_usuario, "mensaje": "Te has registrado con exito"}),  201
 
 
 from flask import send_from_directory
 
-PATH_FILE = getcwd() + "/static/"
+PATH_FILE = getcwd() + "/static/usuarios/"
 
-@autenticacion_bp.route('/imagen/<string:nombre_imagen>')  
+@autenticacion_bp.route('/img_usuario/<string:nombre_imagen>')  
 def obtener_imagen(nombre_imagen):
-    print("PATH_FILE: ", PATH_FILE)
+    # nombre_imagen debe tener este formato: /nombre_usuario/nombre_foto
     return send_from_directory(PATH_FILE, path=nombre_imagen, as_attachment=False)
 
 

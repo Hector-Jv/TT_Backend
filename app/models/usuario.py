@@ -10,7 +10,7 @@ class Usuario(db.Model, UserMixin):
     correo_usuario = db.Column(db.String(100), primary_key=True, unique=True)
     usuario = db.Column(db.String(100), nullable=False, unique=True)
     contrasena_hash  = db.Column(db.String(128))
-    ruta_foto_usuario = db.Column(db.String(400), nullable=True)
+    nombre_imagen = db.Column(db.String(400), nullable=True)
     cve_tipo_usuario = db.Column(db.Integer, db.ForeignKey('tipo_usuario.cve_tipo_usuario'), nullable=False)
     habilitado = db.Column(db.Boolean, nullable=False)
 
@@ -64,7 +64,7 @@ class Usuario(db.Model, UserMixin):
         self.contrasena_hash = generate_password_hash(contrasena)
 
     @staticmethod
-    def agregar_usuario(correo_usuario, usuario, contrasena, ruta_foto_usuario):
+    def agregar_usuario(correo_usuario, usuario, contrasena, nombre_imagen):
         """
         Agrega un nuevo usuario a la base de datos.
         
@@ -74,7 +74,7 @@ class Usuario(db.Model, UserMixin):
             contrasena (str): Contrasena para acceder a cuenta.
         
         Entrada opcional:
-            ruta_foto_usuario (str): Ruta de la imagen
+            nombre_imagen (str): Nombre de la imagen
             
         Retorno exitoso:
             True: Se ha creado con exito el usuario.
@@ -102,7 +102,7 @@ class Usuario(db.Model, UserMixin):
                 correo_usuario = correo_usuario,
                 usuario = usuario,
                 contrasena = contrasena,
-                ruta_foto_usuario = ruta_foto_usuario,
+                nombre_imagen = nombre_imagen,
                 cve_tipo_usuario = tipousuario_encontrado.cve_tipo_usuario,
                 habilitado = True
             )
@@ -115,7 +115,7 @@ class Usuario(db.Model, UserMixin):
             return False
     
     @staticmethod
-    def actualizar_datos_cuenta(correo_usuario, usuario=None, contrasena=None, ruta_foto_usuario=None):
+    def actualizar_datos_cuenta(correo_usuario, usuario=None, contrasena=None, nombre_imagen=None):
         """
         Actualiza los datos de la cuenta del usuario con los valores proporcionados.
 
@@ -125,7 +125,7 @@ class Usuario(db.Model, UserMixin):
         Entrada opcional:
             usuario (str): Nuevo nombre de usuario.
             contrasena (str): Nueva contraseña.
-            ruta_foto_usuario (str): Nueva foto de perfil.
+            nombre_imagen (str): Nueva foto de perfil.
 
         Retorno exitoso:
             True: Se efectuaron los cambios correctamente.
@@ -143,8 +143,8 @@ class Usuario(db.Model, UserMixin):
                 usuario_encontrado.usuario = usuario
             if not Validacion.valor_nulo(contrasena):
                 usuario_encontrado.contrasena = contrasena
-            if not Validacion.valor_nulo(ruta_foto_usuario):
-                usuario_encontrado.ruta_foto_usuario = contrasena
+            if not Validacion.valor_nulo(nombre_imagen):
+                usuario_encontrado.nombre_imagen = nombre_imagen
             db.session.commit()
             return True
         except Exception as e:
@@ -182,7 +182,7 @@ class Usuario(db.Model, UserMixin):
             usuario_encontrado.correo_usuario = correo_ficticio
             usuario_encontrado.usuario = usuario_ficticio
             usuario_encontrado.contrasena = str(uuid.uuid4())
-            usuario_encontrado.ruta_foto_usuario = None
+            usuario_encontrado.nombre_imagen = None
             usuario_encontrado.cve_tipo_usuario = tipousuario_encontrado.cve_tipo_usuario
             usuario_encontrado.habilitado = False
             

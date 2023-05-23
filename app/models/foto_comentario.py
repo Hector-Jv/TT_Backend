@@ -4,7 +4,7 @@ from .comentario import Comentario
 
 class FotoComentario(db.Model):
     cve_foto_comentario = db.Column(db.Integer, primary_key=True)
-    ruta_foto_comentario = db.Column(db.String(400), nullable=False)
+    nombre_imagen = db.Column(db.String(400), nullable=False)
     cve_comentario = db.Column(db.Integer, db.ForeignKey('comentario.cve_comentario'), nullable=False)
     
     comentario = db.relationship('Comentario', backref='fotos_comentario')
@@ -18,17 +18,17 @@ class FotoComentario(db.Model):
         """
         return {
             'cve_foto_comentario': self.cve_foto_comentario,
-            'ruta_foto_comentario': self.ruta_foto_comentario,
+            'nombre_imagen': self.nombre_imagen,
             'cve_comentario': self.cve_comentario
         }
     
     @staticmethod
-    def guardar_imagen(ruta_foto_comentario, cve_comentario):
+    def guardar_imagen(nombre_imagen, cve_comentario):
         """
         Guarda una imagen asociada a un comentario en la base de datos.
 
         Entrada:
-            ruta_foto_comentario (str): Ruta de la imagen.
+            nombre_imagen (str): Nombre de la imagen.
             cve_comentario (int): La clave del comentario asociado a la imagen.
 
         Retorno exitoso:
@@ -44,7 +44,7 @@ class FotoComentario(db.Model):
                 return False
             
             nuevo_fotocomentario = FotoComentario(
-                ruta_foto_comentario = ruta_foto_comentario,
+                nombre_imagen = nombre_imagen,
                 cve_comentario = cve_comentario
             )
             db.session.add(nuevo_fotocomentario)

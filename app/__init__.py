@@ -18,8 +18,6 @@ def create_app(config_class=Config):
     app = Flask(__name__) # Instancia de app Flask.
     app.config.from_object(config_class) # Configura la aplicación utilizando la clase Config importada (ubicado en el archivo config.py).
 
-    app.config['ENV'] = 'development'
-
     app.config['JWT_SECRET_KEY'] =  os.environ.get('SECRET_KEY_TOKEN') # Configura la clave secreta para JWT a partir de una variable de entorno (ubicado en el archivo .env).
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=2) # Tiempo de expiración de token de acceso.
     jwt = JWTManager(app) # Instancia JWTManager que se asocia con app.
@@ -29,7 +27,6 @@ def create_app(config_class=Config):
     CORS(app) # Habilita y configura CORS.
     
     login_manager.init_app(app) # Inicializa instancia LoginManager.
-    
     app.config["IMG_SITIOS"] = "static/sitios/"
     app.config["IMG_COMENTARIOS"] = "static/comentarios/"
     app.config["IMG_USUARIOS"] = "static/usuarios/"
@@ -39,13 +36,6 @@ def create_app(config_class=Config):
 
     app.register_blueprint(routes.autenticacion_bp)
     app.register_blueprint(routes.sitios_bp)
+    app.register_blueprint(routes.fun_admin_bp)
     
-    """
-    app.register_blueprint(routes.login_bp)
-    app.register_blueprint(routes.registro_bp)
-    app.register_blueprint(routes.usuario_bp)
-    app.register_blueprint(routes.inicial_bp)
-    app.register_blueprint(routes.sitio_bp)
-    app.register_blueprint(routes.crud_sitio_bp)
-    """
     return app 

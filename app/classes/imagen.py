@@ -41,33 +41,15 @@ class Imagen():
             return False
 
     @staticmethod
-    def guardar(foto, nombre_usuario, ruta):
+    def guardar(foto, nombre, ruta):
         """
         Guarda la imagen en la ruta proporcionada.
         """
         
-        carpeta_usuario = os.path.join(current_app.config[ruta], nombre_usuario)
-        print("Carpeta usuario: ", carpeta_usuario)
-        if not os.path.exists(carpeta_usuario):
-            os.makedirs(carpeta_usuario)
+        carpeta = os.path.join(current_app.config[ruta], nombre)
+        if not os.path.exists(carpeta):
+            os.makedirs(carpeta)
         nombre_imagen = secure_filename(foto.filename)
-        print("Nombre imagen: ", nombre_imagen)
-        foto.save(os.path.join(carpeta_usuario, nombre_imagen))
-        print("Ruta: ", os.path.join(carpeta_usuario, nombre_imagen).replace('\\', '/'))
-        return os.path.join(carpeta_usuario, nombre_imagen), nombre_imagen
-        
-        """
-        
-        archivo = request.files['foto_usuario']
-        print("Archivo: ", archivo)
-        if archivo.filename != '':
-            filename = secure_filename(archivo.filename)
-            archivo.save(os.path.join(current_app.config['IMG_COMENTARIOS'], filename))
-            ruta_foto_usuario = os.path.join(current_app.config['IMG_COMENTARIOS'], filename)
-        """
-        
-        filename = secure_filename(self.foto.filename)
-        
-        self.foto.save(os.path.join(current_app.config[self.ruta], filename))
-        return os.path.join(current_app.config[self.ruta], filename)
+        foto.save(os.path.join(carpeta, nombre_imagen).replace('\\', '/'))
+        return  nombre_imagen
         
