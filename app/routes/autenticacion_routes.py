@@ -89,7 +89,7 @@ def registrar_usuario():
             if not Imagen.validar_imagen(archivo):
                 return jsonify({"error": "Hubo un problema al intentar abrir la imagen. "}), 400
             
-            nombre_imagen = Imagen.guardar(foto=archivo, nombre_usuario=usuario, ruta="IMG_USUARIOS")
+            nombre_imagen = Imagen.guardar(foto=archivo, nombre=usuario, ruta="IMG_USUARIOS")
 
         else:
             ruta_foto_usuario = None
