@@ -140,7 +140,7 @@ def mostrar_sitios_con_filtros():
 def mostrar_info_sitio():
     
     data = request.get_json()
-    cve_sitio = int(data.get(cve_sitio))
+    cve_sitio = data.get("cve_sitio")
     
     info_sitio: dict = {}
     
@@ -150,6 +150,9 @@ def mostrar_info_sitio():
     fotossitio_encontrado: list = FotoSitio.obtener_fotositio_por_cve(cve_sitio)
     horarios_encontrados: list = Horario.obtener_horarios_por_sitio(cve_sitio)
     tipositio_encontrado: TipoSitio = TipoSitio.obtener_tipositio_por_cve(sitio_encontrado.cve_tipo_sitio)
+    
+    servicioshotel_encontrados = None
+    sitioetiqueta_encontrados = None
     if tipositio_encontrado.tipo_sitio == 'Hotel':
         servicioshotel_encontrados: list = ServicioHotel.obtener_relaciones_por_cvesitio(cve_sitio)
     if tipositio_encontrado.tipo_sitio == 'Museo' or tipositio_encontrado.tipo_sitio == 'Hotel':
@@ -157,10 +160,11 @@ def mostrar_info_sitio():
     
     # Calificación de sitio
     historiales_encontrados = Historial.obtener_historiales_por_sitio(cve_sitio)
+    sum = 0
+    num_elementos = 0
+    visitas = 0
+    calificacion_sitio = 0
     if historiales_encontrados:
-        sum = 0
-        num_elementos = 0
-        visitas = 0
         for historial in historiales_encontrados:
             visitas += 1
             calificacion_encontrada: Calificacion = Calificacion.obtener_calificacion_por_historial(historial.cve_historial)
@@ -169,7 +173,8 @@ def mostrar_info_sitio():
             sum += calificacion_encontrada.calificacion_general
             num_elementos += 1
         calificacion_sitio = sum / num_elementos
-        
+    
+    ## Se pasan a diccionarios ##
     sitio_encontrado_dict: dict = sitio_encontrado.to_dict()
     colonia_encontrada_dict: dict = colonia_encontrada.to_dict()
     delegacion_encontrada_dict: dict = delegacion_encontrada.to_dict()
@@ -182,14 +187,15 @@ def mostrar_info_sitio():
     else:
         lista_horarios = []
     tipositio_encontrado_dict: dict = tipositio_encontrado.to_dict()
+    if servicioshotel_encontrados is not None:
+        info_sitio["servicioshotel_encontrados"] = [servicio.to_dict() for servicio in servicioshotel_encontrados]
+    if sitioetiqueta_encontrados is not None:
+        info_sitio["sitioetiqueta_encontrados"] = [relacion for relacion in sitioetiqueta_encontrados]
+    
     
     info_sitio = sitio_encontrado_dict | colonia_encontrada_dict | delegacion_encontrada_dict | tipositio_encontrado_dict
     info_sitio["lista_fotositio"] = lista_fotositio
     info_sitio["lista_horarios"] = lista_horarios
-    if len(servicioshotel_encontrados) != 0:
-        info_sitio["servicioshotel_encontrados"] = servicioshotel_encontrados
-    if len(sitioetiqueta_encontrados) != 0:
-        info_sitio["sitioetiqueta_encontrados"] = sitioetiqueta_encontrados
     info_sitio["visitas"] = visitas
     info_sitio["calificacion"] = calificacion_sitio
     
