@@ -153,3 +153,15 @@ def crear_sitio():
     
     return jsonify({"mensaje": "Sitio creado con éxito"}), 201
 
+@fun_admin_bp.route('/eliminar_sitio', methods=['DELETE'])
+def eliminar_sitio():
+    
+    """
+    data = request.get_json()
+    
+    cve_sitio = data.get(cve_sitio)
+    """
+
+@fun_admin_bp.route('/modificar_sitio', methods=['PUT'])
+def modificar_sitio():
+    pass

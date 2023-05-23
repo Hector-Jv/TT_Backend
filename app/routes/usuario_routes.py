@@ -44,8 +44,7 @@ def obtener_usuario():
         "historial": [h.to_dict() for h in historial],
         "preferencias": [p.to_dict() for p in preferencias],
     }), 200
-    
-    
+     
 @usuario_bp.route('/admin', methods=['GET'])
 @jwt_required()
 def menu_administrador():

@@ -44,7 +44,7 @@ class SitioEtiqueta(db.Model):
             False: Existe ya una relación o hubo un error.
         """
         try:
-            if SitioEtiqueta.existe_relacion_etiqueta_y_sitio(cve_etiqueta=cve_etiqueta, cve_sitio=cve_sitio):
+            if SitioEtiqueta.obtener_relacion_etiqueta_y_sitio(cve_etiqueta=cve_etiqueta, cve_sitio=cve_sitio):
                 return False
             
             nueva_relacion = SitioEtiqueta(
@@ -160,3 +160,4 @@ class SitioEtiqueta(db.Model):
             print("Hubo un error: ", e)
             return None
             
+    

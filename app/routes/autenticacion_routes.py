@@ -1,12 +1,13 @@
 import os
 from os import getcwd
-from flask import Blueprint, current_app, jsonify, redirect, request, url_for, send_from_directory
+from flask import Blueprint, current_app, jsonify, request, send_from_directory
 from flask_jwt_extended import create_access_token
 from app import db
 from app.models import Usuario, TipoUsuario
 from app.classes.validacion import Validacion
 from app.classes.imagen import Imagen
 
+PATH_FILE = getcwd() + "/static/usuarios/"
 
 autenticacion_bp = Blueprint('autenticacion', __name__)
 
@@ -109,11 +110,6 @@ def registrar_usuario():
     usuario_encontrado: Usuario = Usuario.obtener_usuario_por_correo(correo)
     
     return ({"correo_usuario": usuario_encontrado.correo_usuario, "mensaje": "Te has registrado con exito"}),  201
-
-
-from flask import send_from_directory
-
-PATH_FILE = getcwd() + "/static/usuarios/"
 
 @autenticacion_bp.route('/img_usuario/<string:nombre_imagen>')  
 def obtener_imagen(nombre_imagen):
