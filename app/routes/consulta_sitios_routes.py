@@ -200,6 +200,7 @@ def mostrar_info_sitio():
 @jwt_required()
 def sitio_favorito():
     
+    
     identificador_usuario = get_jwt_identity()
     usuario = Usuario.query.get(identificador_usuario)
 
