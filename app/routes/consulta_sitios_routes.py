@@ -6,7 +6,7 @@ from app.classes.validacion import Validacion
 
 sitios_bp = Blueprint('consulta sitios', __name__)
 
-@sitios_bp.route('/sitios', methods=["GET"])
+@sitios_bp.route('/mostrar_sitios', methods=["GET"])
 def mostrar_sitios():
     
     ## Se obtienen los datos ##
@@ -79,8 +79,7 @@ def mostrar_sitios():
     
     return jsonify(lista_sitios_dict), 200
     
-
-@sitios_bp.route('/sitios/filtros', methods=["GET"])
+@sitios_bp.route('/mostrar_sitios/filtros', methods=["GET"])
 def mostrar_sitios_con_filtros():
     
     data = request.get_json()
@@ -137,54 +136,67 @@ def mostrar_sitios_con_filtros():
 
     return jsonify({"Sitios": sitios_ordenados_json}), 200
 
-
-@sitios_bp.route('/sitios/<cve_sitio>', methods=["GET"])
-def mostrar_info_sitio(cve_sitio):
+@sitios_bp.route('/mostrar_sitio', methods=["GET"])
+def mostrar_info_sitio():
     
-    info_sitio = Sitio.consultar_sitio(cve_sitio)
+    data = request.request.get_json()
+    cve_sitio = int(data.get(cve_sitio))
     
-    info_sitio[0]["imagenes"] = FotoSitio.obtener_fotos_por_sitio(cve_sitio)[0]
-    info_sitio[0]["horarios"] = list(Horario.consultar_horarios_por_sitio(cve_sitio))[0]
-    colonia_sitio = Colonia.obtener_colonia_por_id(info_sitio[0]["cve_colonia"])
-    info_sitio[0]["delegacion"] = Delegacion.buscar_por_cve(colonia_sitio.to_dict()["cve_delegacion"])[0]["nombre_delegacion"]
-    info_sitio[0]["colonia"] = colonia_sitio.to_dict()["nombre_colonia"]
+    info_sitio: dict = {}
     
-    historiales = Historial.consultar_historiales_por_sitio(cve_sitio)
-    if historiales[0] is not None:
-        acumulador = 0
-        contador_none = 0
-        for historial in historiales[0]:
-            calificacion, codigo = Calificacion.consultar_calificacion(historial["cve_historial"])
-            if codigo == 200:
-                acumulador += calificacion
-            else:
-                contador_none +=1
-        info_sitio[0]["promedio"] = acumulador / (len(historiales) - contador_none)
+    sitio_encontrado: Sitio = Sitio.obtener_sitio_por_cve(cve_sitio)
+    colonia_encontrada: Colonia = Colonia.obtener_colonia_por_cve(sitio_encontrado.cve_colonia)
+    delegacion_encontrada: Delegacion = Delegacion.obtener_delegacion_por_cve(colonia_encontrada.cve_delegacion)
+    fotossitio_encontrado: list = FotoSitio.obtener_fotositio_por_cve(cve_sitio)
+    horarios_encontrados: list = Horario.obtener_horarios_por_sitio(cve_sitio)
+    tipositio_encontrado: TipoSitio = TipoSitio.obtener_tipositio_por_cve(sitio_encontrado.cve_tipo_sitio)
+    if tipositio_encontrado.tipo_sitio == 'Hotel':
+        servicioshotel_encontrados: list = ServicioHotel.obtener_relaciones_por_cvesitio(cve_sitio)
+    if tipositio_encontrado.tipo_sitio == 'Museo' or tipositio_encontrado.tipo_sitio == 'Hotel':
+        sitioetiqueta_encontrados: list = SitioEtiqueta.obtener_relaciones_por_cvesitio(cve_sitio)
     
-    info_sitio[0]["tipo_sitio"] = TipoSitio.consultar_por_cve(info_sitio[0]["cve_tipo_sitio"])[0]["tipo_sitio"]
+    # Calificación de sitio
+    historiales_encontrados = Historial.obtener_historiales_por_sitio(cve_sitio)
+    if historiales_encontrados:
+        sum = 0
+        num_elementos = 0
+        visitas = 0
+        for historial in historiales_encontrados:
+            visitas += 1
+            calificacion_encontrada: Calificacion = Calificacion.obtener_calificacion_por_historial(historial.cve_historial)
+            if calificacion_encontrada is None:
+                continue
+            sum += calificacion_encontrada.calificacion_general
+            num_elementos += 1
+        calificacion_sitio = sum / num_elementos
+        
+    sitio_encontrado_dict: dict = sitio_encontrado.to_dict()
+    colonia_encontrada_dict: dict = colonia_encontrada.to_dict()
+    delegacion_encontrada_dict: dict = delegacion_encontrada.to_dict()
+    if fotossitio_encontrado:
+        lista_fotositio = [foto.to_dict() for foto in fotossitio_encontrado]
+    else:
+        lista_fotositio = []
+    if horarios_encontrados:
+        lista_horarios = [horario.to_dict() for horario in horarios_encontrados]
+    else:
+        lista_horarios = []
+    tipositio_encontrado_dict: dict = tipositio_encontrado.to_dict()
     
-    if info_sitio[0]["tipo_sitio"] == "Hotel":
-        relaciones = ServicioHotel.consultar_por_cve_sitio(cve_sitio)[0]
-        if relaciones is not None:
-            servicios = []
-            for relacion in relaciones:
-                servicio = Servicio.consultar_por_cve(relacion["cve_servicio"])[0]
-                servicios.append(servicio["nombre_servicio"])
-            info_sitio[0]["servicios"] = servicios
-            
-    if info_sitio[0]["tipo_sitio"] == "Museo" or info_sitio[0]["tipo_sitio"] == "Restaurante":
-        relaciones = SitioEtiqueta.consultar_relaciones_por_sitio(cve_sitio)[0]
-        if relaciones is not None:
-            etiquetas = []
-            for relacion in relaciones:
-                etiqueta = Etiqueta.consultar_etiqueta_por_cve(relaciones["cve_etiqueta"])[0]
-                etiquetas.append(etiqueta["nombre_etiqueta"])
-            info_sitio[0]["etiquetas"] = etiquetas
+    info_sitio = sitio_encontrado_dict | colonia_encontrada_dict | delegacion_encontrada_dict | tipositio_encontrado_dict
+    info_sitio["lista_fotositio"] = lista_fotositio
+    info_sitio["lista_horarios"] = lista_horarios
+    if len(servicioshotel_encontrados) != 0:
+        info_sitio["servicioshotel_encontrados"] = servicioshotel_encontrados
+    if len(sitioetiqueta_encontrados) != 0:
+        info_sitio["sitioetiqueta_encontrados"] = sitioetiqueta_encontrados
+    info_sitio["visitas"] = visitas
+    info_sitio["calificacion"] = calificacion_sitio
     
-    return jsonify({"sitio": info_sitio[0]}), 200
+    return jsonify(info_sitio), 200
 
 ## PENDIENTE
-@sitios_bp.route('/sitio_favorito', methods=["POST"])
+@sitios_bp.route('/agregar_sitio_favorito', methods=["POST"])
 @jwt_required()
 def sitio_favorito():
     

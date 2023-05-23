@@ -8,7 +8,7 @@ import json
 
 fun_admin_bp = Blueprint('Funciones administrador', __name__)
 
-@fun_admin_bp.route('/sitio', methods=['GET'])
+@fun_admin_bp.route('/crear_sitio', methods=['GET'])
 def datos_para_crear_sitio():
     datos: dict = {}
     datos["tipo_sitios"] = [tipositio.to_dict() for tipositio in TipoSitio.obtener_tipositios()]
@@ -18,7 +18,7 @@ def datos_para_crear_sitio():
     
     return jsonify(datos), 200
 
-@fun_admin_bp.route('/sitio', methods=['POST'])
+@fun_admin_bp.route('/crear_sitio', methods=['POST'])
 def crear_sitio():
     
     ##  Datos obligatorios ##

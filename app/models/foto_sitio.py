@@ -91,7 +91,7 @@ class FotoSitio(db.Model):
         Obtiene las fotos asociadas a un sitio en particular.
 
         Entrada:
-            cve_foto_sitio (int): La clave del sitio asociado a las imágenes.
+            cve_sitio (int): La clave del sitio asociado a las imágenes.
         
         Retorno exitoso:
             FotoSitio: Instancia de tipo FotoSitio.
