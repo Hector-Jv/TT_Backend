@@ -116,7 +116,7 @@ class Colonia(db.Model):
         """
         try:
             colonia = Colonia.query.filter_by(nombre_colonia=nombre).first()
-            if colonia:
+            if colonia is not None:
                 return colonia
             else:
                 None
