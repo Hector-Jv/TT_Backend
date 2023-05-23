@@ -9,52 +9,6 @@ from app.classes.validacion import Validacion
 
 sitio_bp = Blueprint('sitio', __name__)
 
-@sitio_bp.route('/sitios', methods=['GET'])
-def obtener_sitios():
-    
-    # Se obtienen todos los sitios registrados.
-    sitios = Sitio.query.all()
-    
-    lista_sitios = []
-    
-    for sitio in sitios:
-        info_sitio = {}
-        info_sitio["cve_sitio"] = sitio.cve_sitio
-        info_sitio["nombre_sitio"] = sitio.nombre_sitio
-        info_sitio["x_longitud"] = sitio.x_longitud
-        info_sitio["y_latitud"] = sitio.y_latitud
-        info_sitio["direccion"] = sitio.direccion
-        info_sitio["fecha_actualizacion"] = sitio.fecha_actualizacion
-        info_sitio["descripcion"] = sitio.descripcion
-        info_sitio["correo_sitio"] = sitio.correo_sitio
-        info_sitio["fecha_fundacion"] = sitio.fecha_fundacion
-        info_sitio["costo_promedio"] = sitio.costo_promedio
-        info_sitio["habilitado"] = sitio.habilitado
-        info_sitio["pagina_web"] = sitio.pagina_web
-        info_sitio["telefono"] = sitio.telefono
-        info_sitio["adscripcion"] = sitio.adscripcion
-        
-        # Busca el tipo de sitio que pertenece.
-        tipo_sitio_objeto = TipoSitio.query.filter_by(cve_tipo_sitio=sitio.cve_tipo_sitio).first()
-        
-        info_sitio["tipo_sitio"] = tipo_sitio_objeto.tipo_sitio
-        info_sitio["habilitado"] = sitio.habilitado
-        
-        # Busca la colonia al que pertenece.
-        colonia_objeto = Colonia.query.filter_by(cve_colonia=sitio.cve_colonia).first()
-        
-        # Busca la delegacion al que pertenece.
-        delegacion_objeto = Delegacion.query.filter_by(cve_delegacion=colonia_objeto.cve_delegacion).first()
-        
-        info_sitio["colonia"] = colonia_objeto.nombre_colonia
-        info_sitio["delegacion"] = delegacion_objeto.nombre_delegacion
-        
-        # Faltan las fotografías, horarios, etiquetas, servicios
-        lista_sitios.append(info_sitio)
-        
-    return jsonify(lista_sitios), 200
-
-
 @sitio_bp.route('/sitio', methods=['DELETE'])
 def eliminar_sitio():
     

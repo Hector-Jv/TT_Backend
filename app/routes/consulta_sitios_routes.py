@@ -80,19 +80,6 @@ def mostrar_sitios():
     return jsonify(lista_sitios_dict), 200
     
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 @sitios_bp.route('/sitios/filtros', methods=["GET"])
 def mostrar_sitios_con_filtros():
     
