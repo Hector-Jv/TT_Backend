@@ -189,10 +189,10 @@ class ServicioHotel(db.Model):
             if not Validacion.valor_nulo(relaciones_encontradas):
                 return relaciones_encontradas
             else:
-                return None
+                return []
         except Exception as e:
             print("Hubo un error: ", e)
-            return None
+            return []
         
     @staticmethod
     def obtener_relacion_servicio_y_hotel(cve_servicio, cve_sitio):

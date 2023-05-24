@@ -5,6 +5,7 @@ from .comentario import Comentario
 class FotoComentario(db.Model):
     cve_foto_comentario = db.Column(db.Integer, primary_key=True)
     nombre_imagen = db.Column(db.String(400), nullable=False)
+    link_imagen = db.Column(db.String(400), nullable=False)
     cve_comentario = db.Column(db.Integer, db.ForeignKey('comentario.cve_comentario'), nullable=False)
     
     comentario = db.relationship('Comentario', backref='fotos_comentario')
@@ -93,7 +94,7 @@ class FotoComentario(db.Model):
             list: Lista con instancia de tipo FotoComentario.
             
         Retorno fallido:
-            None: Hubo un error.
+            []: Hubo un error o está vacía.
         """
         try: 
             fotos_comentario = FotoComentario.query.filter_by(cve_comentario=cve_comentario).all()
@@ -101,10 +102,10 @@ class FotoComentario(db.Model):
             if Validacion.valor_nulo(fotos_comentario):
                 return fotos_comentario
             else:
-                return None
+                return []
         except Exception as e:
             print("Hubo un error: ", e)
-            return None
+            return []
     
     @staticmethod
     def obtener_fotocomentario_por_cve(cve_foto_comentario):

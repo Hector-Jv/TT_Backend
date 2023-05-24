@@ -98,6 +98,30 @@ class Historial(db.Model):
             return False
 
     @staticmethod
+    def eliminar_historial(cve_historial):
+        """
+        Se elimina el historial de la base de datos.
+        
+        Entrada:
+            cve_historial (int): Clave de historial.
+            
+        Retorno:
+            boolean: True si se eliminó o False si no.
+        """
+        try:
+            historial_encontrado = Historial.obtener_historial(cve_historial)
+            
+            if historial_encontrado:
+                db.session.delete(historial_encontrado)
+                db.session.commit()
+                return True
+            return False
+                
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+
+    @staticmethod
     def obtener_historial(cve_historial):
         """
         Obtener un historial por su clave.

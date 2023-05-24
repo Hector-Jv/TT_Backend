@@ -57,6 +57,30 @@ class Calificacion(db.Model):
             return False
 
     @staticmethod
+    def eliminar_calificacion(cve_calificacion):
+        """
+        Elimina la calificación de la base de datos.
+        
+        Entrada:
+            cve_calificacion (int): Clave de calificacion.
+            
+        Retorno:
+            boolean: Se eliminó o no la calificación.
+        """
+        try:
+            calificacion_encontrada = Calificacion.obtener_calificacion(cve_calificacion)
+            
+            if calificacion_encontrada:
+                db.session.delete(calificacion_encontrada)
+                db.session.commit()
+                return True
+            return False
+            
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return False
+
+    @staticmethod
     def modificar_calificacion(cve_calificacion, calificacion_general):
         """
         Modifica la calificación general.
@@ -133,6 +157,31 @@ class Calificacion(db.Model):
         except Exception as e:
             print("Hubo un error: ", e)
             return None
+
+    @staticmethod
+    def obtener_calificaciones_por_cvehistorial(cve_historial):
+        """
+        Obtiene las calificaciones por clave de historial.
+        
+        Entrada: 
+            cve_historial (int): Clave de historial.
+            
+        Retorno exitoso:
+            list: Lista de objetos de tipo Calificacion.
+            
+        Retorno fallido:
+            []: Hubo un error o no se encontró ninguna calificación.
+        """
+        try:
+            calificaciones_encontradas = Calificacion.query.filter_by(cve_historial=cve_historial).all()
+        
+            if not calificaciones_encontradas:
+                return []
+            else:
+                return calificaciones_encontradas
+        except Exception as e:
+            print("Hubo un error: ", e)
+            return []
 
     @staticmethod
     def obtener_calificacion_por_historial(cve_historial):
