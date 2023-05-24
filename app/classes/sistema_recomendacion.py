@@ -63,7 +63,7 @@ class SistemaRecomendacion():
                     contadores[j] = 1
                     matriz_grande[index][i] = 1
 
-        return (matriz_grande, contadores)
+        return matriz_grande, contadores
 
 
 def matriz(matriz):
@@ -156,10 +156,7 @@ def genera_conjuntos(min_sup, pt, conjuntos):
                         fin += 1
                         if fin == fila1:
                             prueba_logica = 1
-                # print(f'(i: {i}, fila1: {fila1} in j: {j})')
                 if (((prueba_logica == 0) or (pt[i][fila1] in pt[j]))) and (pt[j][fila1] not in pt[i]):
-                    # print(
-                    # f'({pt[i][fila1]} in {pt[j]}))) and ({pt[j][fila1]} not in {pt[i]})')
                     combinaciones_c.append(i)
                     aux = copy.copy(pt[i])
                     aux.append(pt[j][fila1])
@@ -178,10 +175,6 @@ def genera_conjuntos(min_sup, pt, conjuntos):
                         esta = 0
                     aux = []
                 prueba_logica = 0
-        # print('\nConjuntos obtenios')
-        """for w in range(len(pt)):
-            print(pt[w])
-        print(f'\nlen(pt[0]): {pt[0]}')"""
         pt = []
         pt = combo
 

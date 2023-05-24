@@ -3,13 +3,12 @@ from app import db
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.models import TipoSitio, Sitio, Delegacion, Colonia, Calificacion, Historial, Horario, ServicioHotel, Servicio, SitioEtiqueta, Etiqueta, FotoSitio, Usuario
 from app.classes.validacion import Validacion
-import time
 
 sitios_bp = Blueprint('consulta sitios', __name__)
 
 @sitios_bp.route('/mostrar_sitios', methods=["GET"])
 def mostrar_sitios():
-    inicio = time.time()
+    
     ## Se obtienen los datos ##
     data = request.get_json()
     tipo_sitio = data.get("cve_tipo_sitio")
@@ -61,7 +60,6 @@ def mostrar_sitios():
             sitio_dict["foto"] = [foto.nombre_imagen for foto in fotositio_encontrada]
         
         lista_sitios_dict.append(sitio_dict)
-        
     """
     # Ordenar los datos.
     if opcion_ordenamiento == 1: # Ordenamiento por calificacion (por defecto)
@@ -77,8 +75,7 @@ def mostrar_sitios():
 
     sitios_ordenados_json = [sitio.to_dict() for sitio in sitios_ordenados]
     """
-    fin = time.time()
-    print(f"La ruta se ejecutó en {fin - inicio} segundos")
+    
     return jsonify(lista_sitios_dict), 200
     
 @sitios_bp.route('/mostrar_sitios/filtros', methods=["GET"])
@@ -202,17 +199,3 @@ def mostrar_info_sitio():
     info_sitio["calificacion"] = calificacion_sitio
     
     return jsonify(info_sitio), 200
-
-## PENDIENTE
-@sitios_bp.route('/agregar_sitio_favorito', methods=["POST"])
-@jwt_required()
-def sitio_favorito():
-    
-    
-    identificador_usuario = get_jwt_identity()
-    usuario = Usuario.query.get(identificador_usuario)
-
-    if not usuario:
-        return jsonify({"error": "Necesitas estar logueado.", "id_usuario": identificador_usuario}), 404
-    
-    return jsonify({"usuario": usuario}), 200
