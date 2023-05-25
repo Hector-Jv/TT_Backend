@@ -1,11 +1,16 @@
 from app import db
 
 class Colonia(db.Model):
-    cve_colonia = db.Column(db.Integer, primary_key=True)
+    __tablename__ = 'colonia'
+    cve_colonia = db.Column(db.Integer, nullable=False)
     nombre_colonia = db.Column(db.String(400), nullable=False)
-    cve_delegacion = db.Column(db.Integer, db.ForeignKey('delegacion.cve_delegacion') , nullable=False)
+    cve_delegacion = db.Column(db.Integer, db.ForeignKey('delegacion.cve_delegacion'), nullable=False)
     
     delegacion = db.relationship('Delegacion', backref='colonias')
+
+    __table_args__ = (
+        db.PrimaryKeyConstraint('cve_colonia', 'cve_delegacion'),
+    )
     
     def to_dict(self):
         """

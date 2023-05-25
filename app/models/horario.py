@@ -2,13 +2,17 @@ from app import db
 from app.classes.validacion import Validacion
 
 class Horario(db.Model):
-    cve_horario = db.Column(db.Integer, primary_key=True)
+    cve_horario = db.Column(db.Integer, autoincrement=True, nullable=False)
     dia = db.Column(db.String(100), nullable=False)
     horario_apertura = db.Column(db.Time, nullable=False)
     horario_cierre = db.Column(db.Time, nullable=False)
-    cve_sitio = db.Column(db.Integer, db.ForeignKey('sitio.cve_sitio') , nullable=False)
+    cve_sitio = db.Column(db.Integer, db.ForeignKey('sitio.cve_sitio'), nullable=False)
     
     sitio = db.relationship('Sitio', backref='horarios')
+
+    __table_args__ = (
+        db.PrimaryKeyConstraint('cve_horario', 'cve_sitio'),
+    )
 
     def to_dict(self):
         """

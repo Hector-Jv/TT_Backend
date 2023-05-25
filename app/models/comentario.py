@@ -4,12 +4,16 @@ from app import db
 from app.classes.validacion import Validacion
 
 class Comentario(db.Model):
-    cve_comentario = db.Column(db.Integer, primary_key=True)
+    cve_comentario = db.Column(db.Integer, autoincrement=True, nullable=False)
     comentario = db.Column(db.String(400), nullable=False)
     fecha_comentario = db.Column(db.DateTime, nullable=False)
     cve_historial = db.Column(db.Integer, db.ForeignKey('historial.cve_historial'), nullable=False)
     
     historial = db.relationship('Historial', backref='comentarios')
+
+    __table_args__ = (
+        db.PrimaryKeyConstraint('cve_comentario', 'cve_historial'),
+    )
     
     def to_dict(self):
         """

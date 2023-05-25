@@ -3,12 +3,17 @@ from app.classes.validacion import Validacion
 from .comentario import Comentario
 
 class FotoComentario(db.Model):
-    cve_foto_comentario = db.Column(db.Integer, primary_key=True)
+    cve_foto_comentario = db.Column(db.Integer, autoincrement=True, nullable=False)
     nombre_imagen = db.Column(db.String(400), nullable=False)
     link_imagen = db.Column(db.String(400), nullable=False)
+    nombre_autor = db.Column(db.String(400), nullable=False)
     cve_comentario = db.Column(db.Integer, db.ForeignKey('comentario.cve_comentario'), nullable=False)
     
     comentario = db.relationship('Comentario', backref='fotos_comentario')
+
+    __table_args__ = (
+        db.PrimaryKeyConstraint('cve_foto_comentario', 'cve_comentario'),
+    )
     
     def to_dict(self):
         """

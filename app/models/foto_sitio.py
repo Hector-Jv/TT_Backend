@@ -4,11 +4,15 @@ from .sitio import Sitio
 from app.classes.validacion import Validacion
 
 class FotoSitio(db.Model):
-    cve_foto_sitio = db.Column(db.Integer, primary_key=True)
-    nombre_imagen = db.Column(db.String(300), nullable=False)
+    cve_foto_sitio = db.Column(db.Integer, autoincrement=True, nullable=False)
+    nombre_imagen = db.Column(db.String(400), nullable=False)
+    link_imagen = db.Column(db.String(400), nullable=False)
+    nombre_autor = db.Column(db.String(400), nullable=False)
     cve_sitio = db.Column(db.Integer, db.ForeignKey('sitio.cve_sitio'), nullable=False)
-    
-    sitio = db.relationship('Sitio', backref='fotos_sitio')
+
+    __table_args__ = (
+        db.PrimaryKeyConstraint('cve_foto_sitio', 'cve_sitio'),
+    )
     
     def to_dict(self):
         """
