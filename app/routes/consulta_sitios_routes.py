@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify, redirect, request
 #from app import db
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.models import TipoSitio, Sitio, Delegacion, Colonia, Calificacion, Historial, Horario, ServicioHotel, Servicio, SitioEtiqueta, Etiqueta, FotoSitio, Usuario
-from app.classes.validacion import Validacion
 from app.classes.consulta import Consulta
 
 sitios_bp = Blueprint('consulta sitios', __name__)
