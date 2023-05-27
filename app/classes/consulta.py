@@ -84,6 +84,7 @@ class Consulta():
         datos = {}
         imagenes = []
         horarios = []
+        comentarios = []
         try:
             self.cursor.callproc('obtener_sitio', [cve_sitio])
             resultados = self.cursor.stored_results()
@@ -97,10 +98,10 @@ class Consulta():
                     datos["x_longitud"] = sitio[2]
                     datos["y_latitud"] = sitio[3]
                     datos["direccion"] = sitio[4]
-                    datos["fecha_actualizacion"] = "prueba" #sitio[8]
+                    datos["fecha_actualizacion"] = str(sitio[5])
                     datos["descripcion"] = sitio[6]
                     datos["correo_sitio"] = sitio[7]
-                    datos["fecha_fundacion"] = "prueba" #sitio[8]
+                    datos["fecha_fundacion"] = str(sitio[8])
                     datos["costo_promedio"] = sitio[9]
                     datos["habilitado"] = sitio[10]
                     datos["pagina_web"] = sitio[11]
@@ -121,16 +122,35 @@ class Consulta():
                     horario = datos_resultado[0]
                     dato_horario = {}
                     dato_horario["dia"] = horario[0]
-                    dato_horario["horario_apertura"] = "prueba" #horario[1]
-                    dato_horario["horario_cierre"] = "prueba" #horario[2]
+                    dato_horario["horario_apertura"] = str(horario[1])
+                    dato_horario["horario_cierre"] = str(horario[2])
                     horarios.append(dato_horario)
                 elif resultado.description[0][0] == 'visitas':
                     visita_datos = datos_resultado[0]
                     datos["visita"] = visita_datos[0]
                     datos["calificacion_promedio"] = visita_datos[1]
                 elif resultado.description[0][0] == 'cve_comentario':
-                    datos["comentario"] = [x[0] for x in datos_resultado]
+                    comentario = datos_resultado[0]
+                    dato_comentario = {}
+                    imagenes_comentario = []
+                    dato_comentario["cve_comentario"] = comentario[0]
+                    dato_comentario["comentario"] = comentario[1]
+                    dato_comentario["fecha_comentario"] = str(comentario[2])
+                    self.cursor.callproc('obtener_imagenes_fotocomentario', [comentario[0]])
+                    imagenes_consulta = self.cursor.stored_results()
+                    for imagenes in imagenes_consulta:
+                        imagenes_resultado = imagenes.fetchall()
+                        if imagenes.description[0][0] == 'nombre_imagen':
+                            dato_imagen_comentario = {}
+                            dato_imagen_comentario["nombre_imagen"] = imagenes_resultado[0]
+                            dato_imagen_comentario["link_imagen"] = imagenes_resultado[1]
+                            dato_imagen_comentario["nombre_autor"] = imagenes_resultado[2]
+                            imagenes_comentario.append(dato_imagen_comentario)
+                    dato_comentario["imagenes"] = imagenes_comentario
+                    comentarios.append(dato_comentario)
+                    
         finally:
             datos["imagenes"] = imagenes
             datos["horarios"] = horarios
+            datos["comentarios"] = comentarios
             return datos
