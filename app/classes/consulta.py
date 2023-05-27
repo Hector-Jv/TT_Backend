@@ -1,4 +1,5 @@
 import mysql.connector
+from datetime import datetime, date
 
 class Consulta():
     
@@ -79,4 +80,57 @@ class Consulta():
         finally:
             return fotos
     
-    
+    def obtener_sitio(self, cve_sitio):
+        datos = {}
+        imagenes = []
+        horarios = []
+        try:
+            self.cursor.callproc('obtener_sitio', [cve_sitio])
+            resultados = self.cursor.stored_results()
+            
+            for resultado in resultados:
+                datos_resultado = resultado.fetchall()
+                if resultado.description[0][0] == 'cve_sitio':
+                    sitio = datos_resultado[0]
+                    datos["cve_sitio"] = sitio[0]
+                    datos["nombre_sitio"] = sitio[1]
+                    datos["x_longitud"] = sitio[2]
+                    datos["y_latitud"] = sitio[3]
+                    datos["direccion"] = sitio[4]
+                    datos["fecha_actualizacion"] = "prueba" #sitio[8]
+                    datos["descripcion"] = sitio[6]
+                    datos["correo_sitio"] = sitio[7]
+                    datos["fecha_fundacion"] = "prueba" #sitio[8]
+                    datos["costo_promedio"] = sitio[9]
+                    datos["habilitado"] = sitio[10]
+                    datos["pagina_web"] = sitio[11]
+                    datos["telefono"] = sitio[12]
+                    datos["adscripcion"] = sitio[13]
+                elif resultado.description[0][0] == 'nombre_servicio':
+                    datos["servicios"] = [x[0] for x in datos_resultado] 
+                elif resultado.description[0][0] == 'nombre_etiqueta':
+                    datos["etiquetas"] = [x[0] for x in datos_resultado]
+                elif resultado.description[0][0] == 'nombre_imagen':
+                    imagen = datos_resultado[0]
+                    dato_imagen = {}
+                    dato_imagen["nombre_imagen"] = imagen[0]
+                    dato_imagen["link_imagen"] = imagen[1]
+                    dato_imagen["nombre_autor"] = imagen[2]
+                    imagenes.append(dato_imagen)
+                elif resultado.description[0][0] == 'dia':
+                    horario = datos_resultado[0]
+                    dato_horario = {}
+                    dato_horario["dia"] = horario[0]
+                    dato_horario["horario_apertura"] = "prueba" #horario[1]
+                    dato_horario["horario_cierre"] = "prueba" #horario[2]
+                    horarios.append(dato_horario)
+                elif resultado.description[0][0] == 'visitas':
+                    visita_datos = datos_resultado[0]
+                    datos["visita"] = visita_datos[0]
+                    datos["calificacion_promedio"] = visita_datos[1]
+                elif resultado.description[0][0] == 'cve_comentario':
+                    datos["comentario"] = [x[0] for x in datos_resultado]
+        finally:
+            datos["imagenes"] = imagenes
+            datos["horarios"] = horarios
+            return datos
