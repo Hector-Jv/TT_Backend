@@ -107,7 +107,6 @@ class SistemaRecomendacion():
                             nueva_matriz[nuevo] = [matriz_2[k], matriz_2[j]]
                         nuevo += 1
                     contador = 0
-            # print(f'nueva_matriz: {nueva_matriz}')
             matriz_ver = np.array(nueva_matriz)
             long = len(matriz_ver)
             w = 0
@@ -159,10 +158,7 @@ class SistemaRecomendacion():
                                 fin += 1
                                 if fin == fila1:
                                     prueba_logica = 1
-                        # print(f'(i: {i}, fila1: {fila1} in j: {j})')
                         if (((prueba_logica == 0) or (pt[i][fila1] in pt[j]))) and (pt[j][fila1] not in pt[i]):
-                            # print(
-                            # f'({pt[i][fila1]} in {pt[j]}))) and ({pt[j][fila1]} not in {pt[i]})')
                             combinaciones_c.append(i)
                             aux = copy.copy(pt[i])
                             aux.append(pt[j][fila1])
@@ -181,16 +177,10 @@ class SistemaRecomendacion():
                                 esta = 0
                             aux = []
                         prueba_logica = 0
-                # print('\nConjuntos obtenios')
-                """for w in range(len(pt)):
-                    print(pt[w])
-                print(f'\nlen(pt[0]): {pt[0]}')"""
                 pt = []
                 pt = combo
-
                 for w in range(len(pt)):
                     print(pt[w])
-                # print(f'\nlen(pt[0]): {pt[0]}')
                 fila1 = 1
                 (pt, contadores) = filtro_conjuntos(
                     min_sup, opiniones_nuevas, pt, combo)
@@ -198,10 +188,6 @@ class SistemaRecomendacion():
                 combo = pt
 
             return (pt, contadores)
-            # print(f'\nTerceros conjuntos:')
-            # for w in range(len(combo)):
-            #    print(combo[w])
-            # print(f'len(combo): {len(combo)}')
 
 
         def filtro_conjuntos(min_sup, opiniones_nuevas, pt, combo):
@@ -245,22 +231,13 @@ class SistemaRecomendacion():
                     longest = x
                     elementos = pt.index(longest)
                     minimo = len(x)
-                    # print(f'cuenta: {elementos}')
-            # print(f'el maximo es de: {minimo}')
 
             reglas_bien = []
             contadores_bien = []
-            # print(f'\nSe filtran los que sean menores que 2')
             for fin in range(elementos, len(pt)):
                 if len(pt[fin]) == minimo:
                     reglas_bien.append(pt[fin])
                     contadores_bien.append(contadores[fin])
-                    # print(f'reglas_bien: {reglas_bien[fin]}')
-                # print(f'{pt [fin]}')
-            """for fin in range(len(reglas_bien)):
-                print(
-                    f'reglas_bien: {reglas_bien[fin]}, con conjunto: {contadores_bien[fin]}')
-            print('\nSe calculan las confianzas\n')"""
             return (reglas_bien, contadores_bien)
 
 
@@ -327,7 +304,6 @@ class SistemaRecomendacion():
                             confianzas.append(soporte)
                     cuenta = 0
                     registro = []
-            # print(f'\nSe filtran las reglas que complan la confinaza')
             for i in range(len(reglas_evaluar)):
                 print(f'{reglas_evaluar[i]}, con confianza: {confianzas[i]}')
 
@@ -374,4 +350,3 @@ class SistemaRecomendacion():
         reglas = reglas_asociacion(soporte_minimo, regla_fuertes, contadores_fuertes,
                                 matriz_grande, ordenados, total_conjuntos)
         
-        return reglas

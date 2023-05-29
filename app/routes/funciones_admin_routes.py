@@ -131,7 +131,6 @@ def crear_sitio():
             )
     
     ## Manejo de imagen ##
-    print("E")
     if 'foto_sitio' in request.files:
         archivo = request.files['foto_sitio']
         

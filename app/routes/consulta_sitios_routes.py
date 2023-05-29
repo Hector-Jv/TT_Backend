@@ -6,7 +6,7 @@ from app.classes.consulta import Consulta
 
 sitios_bp = Blueprint('consulta sitios', __name__)
 
-@sitios_bp.route('/mostrar_sitios', methods=["GET"])
+@sitios_bp.route('/mostrar_sitios', methods=["GET", "POST"])
 def mostrar_sitios():
     
     ## Se obtienen los datos ##
