@@ -6,8 +6,8 @@ from app.classes.validacion import Validacion
 class FotoSitio(db.Model):
     cve_foto_sitio = db.Column(db.Integer, autoincrement=True, nullable=False)
     nombre_imagen = db.Column(db.String(400), nullable=False)
-    link_imagen = db.Column(db.String(400), nullable=False)
-    nombre_autor = db.Column(db.String(400), nullable=False)
+    link_imagen = db.Column(db.String(400), nullable=True)
+    nombre_autor = db.Column(db.String(400), nullable=True)
     cve_sitio = db.Column(db.Integer, db.ForeignKey('sitio.cve_sitio'), nullable=False)
 
     __table_args__ = (

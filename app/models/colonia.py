@@ -96,7 +96,7 @@ class Colonia(db.Model):
             None: No se encontró ninguna colonia con esa clave.
         """
         try:
-            colonia = Colonia.query.get(cve_colonia)
+            colonia = Colonia.query.filter_by(cve_colonia = cve_colonia)
             if colonia:
                 return colonia
             else:

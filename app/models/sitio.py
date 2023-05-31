@@ -55,7 +55,12 @@ class Sitio(db.Model):
         }
     
     @staticmethod
-    def agregar_sitio(nombre_sitio: str, x_longitud: float, y_latitud: float, direccion: str, cve_tipo_sitio: int, cve_colonia: int, descripcion: str=None, correo_sitio:str=None, fecha_fundacion:datetime=None, costo_promedio:float=None, pagina_web:str=None, telefono:str=None, adscripcion:str=None):
+    def agregar_sitio(
+            nombre_sitio: str, x_longitud: float, y_latitud: float, 
+            direccion: str, cve_tipo_sitio: int, cve_colonia: int, 
+            descripcion: str=None, correo_sitio:str=None, fecha_fundacion:datetime=None, 
+            costo_promedio:float=None, pagina_web:str=None, telefono:str=None, 
+            adscripcion:str=None):
         """
         Agregar un nuevo sitio a la base de datos.
         
@@ -114,6 +119,7 @@ class Sitio(db.Model):
             return True
         except Exception as e:
             print("Hubo un error: ", e)
+            print("A")
             return False
     
     @staticmethod

@@ -12,9 +12,14 @@ def agregar_sitio_favorito():
     
     identificador_usuario = get_jwt_identity()
     usuario = Usuario.query.get(identificador_usuario)
-
+    
+    
+    
     if not usuario:
         return jsonify({"error": "Necesitas estar logueado.", "id_usuario": identificador_usuario}), 404
+    
+    
+    
     
     return jsonify({"usuario": usuario}), 200
 

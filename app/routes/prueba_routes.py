@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app import db
-from app.classes.sistema_recomendacion import SistemaRecomendacion
+from app.classes.sistema_recomendacion import sistema_recomendacion
 
 prueba_bp = Blueprint('Pruebas', __name__)
 
@@ -27,8 +27,8 @@ def prueba_sistema_recomendacion():
              opinion_5, opinion_6, opinion_7, opinion_8, opinion_9, opinion_10, opinion_11 
              ]
     
-    resultado = SistemaRecomendacion(opiniones)
+    resultado = sistema_recomendacion(opiniones)
     
     print(resultado)
     
-    return jsonify({"mensaje": "prueba"}), 200
+    return jsonify({"resultado": resultado}), 200
