@@ -4,7 +4,7 @@ from app.classes.consulta import Consulta
 
 mostrar_sitio_unr_bp = Blueprint('Mostrar sitio UNR', __name__)
 
-@mostrar_sitio_unr_bp.route('/mostrar_sitio', methods=["GET"])
+@mostrar_sitio_unr_bp.route('/mostrar_sitio', methods=["GET", "POST"])
 def mostrar_info_sitio():
     
     data = request.get_json()
