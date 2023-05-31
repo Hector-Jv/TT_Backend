@@ -18,3 +18,8 @@ def datos_para_crear_sitio():
     datos["etiquetas"] = [etiqueta.to_dict() for etiqueta in Etiqueta.obtener_todas_las_etiquetas()]
     
     return jsonify(datos), 200
+
+@datos_para_crear_sitio_bp.route('/obtener_etiquetas', methods=['GET'])
+def obtener_etiquetas():
+    etiquetas = [etiqueta.to_dict()["nombre_etiqueta"] for etiqueta in Etiqueta.obtener_todas_las_etiquetas()]
+    return jsonify({"etiquetas": etiquetas}), 200
