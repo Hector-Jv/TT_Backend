@@ -38,5 +38,6 @@ def create_app(config_class=Config):
     app.register_blueprint(routes.sitios_bp)
     app.register_blueprint(routes.fun_admin_bp)
     app.register_blueprint(routes.prueba_bp)
+    app.register_blueprint(routes.favoritos_bp)
     
     return app 

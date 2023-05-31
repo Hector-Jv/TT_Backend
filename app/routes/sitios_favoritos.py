@@ -51,7 +51,7 @@ def mostrar_sitio_usuario_registrado():
 
     try:
         conexion_db = Consulta()
-        conexion_db.cursor.callproc('es_sitio_favorito', [usuario.correo_usuario, cve_sitio])
+        conexion_db.cursor.callproc('es_sitio_favorito', [cve_sitio, usuario.correo_usuario])
         resultados = conexion_db.cursor.stored_results()
         for resultado in resultados:
             dato_resultado = resultado.fetchone()
