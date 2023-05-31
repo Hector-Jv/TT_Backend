@@ -6,7 +6,7 @@ from app.classes.consulta import Consulta
 
 mostrar_sitio_bp = Blueprint('Mostrar sitio', __name__)
 
-@mostrar_sitio_bp.route('/mostrar_sitio_ur', methods=["GET"])
+@mostrar_sitio_bp.route('/mostrar_sitio_ur', methods=["POST"])
 @jwt_required()
 def mostrar_sitio_usuario_registrado():
     

@@ -24,7 +24,7 @@ def agregar_sitio_favorito():
     
     try:
         conexion_db = Consulta()
-        conexion_db.cursor.callproc('agregar_quitar_sitio_favorito', [cve_sitio])
+        conexion_db.cursor.callproc('agregar_quitar_sitio_favorito', [cve_sitio, usuario.correo_usuario])
     finally:
         conexion_db.cerrar_conexion_db()
     return jsonify({"mensaje": "Añadido a favoritos."}), 200
