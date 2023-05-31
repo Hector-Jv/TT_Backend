@@ -207,6 +207,7 @@ def sistema_recomendacion(opiniones: list):
         return (regla_fuertes, contadores_fuertes)
 
     def elemento_mayor(pt, contadores):
+        elementos = 0
         minimo = 0
         longest = pt[0] if pt else None
         for x in pt:

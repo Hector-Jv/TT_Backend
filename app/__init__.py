@@ -32,12 +32,21 @@ def create_app(config_class=Config):
     app.config["IMG_USUARIOS"] = "static/usuarios/"
 
     # Rutas que se han registrado
-    from app import routes
-
-    app.register_blueprint(routes.autenticacion_bp)
-    app.register_blueprint(routes.sitios_bp)
-    app.register_blueprint(routes.fun_admin_bp)
-    app.register_blueprint(routes.prueba_bp)
-    app.register_blueprint(routes.favoritos_bp)
+    from .routes.Administrador import all_blueprints as administrador_blueprints
+    from .routes.Autenticacion import all_blueprints as autenticacion_blueprints
+    from .routes.UsuarioNoRegistrado import all_blueprints as usuario_no_registrado_blueprints
+    from .routes.UsuarioRegistrado import all_blueprints as usuario_registrado_blueprints
+    
+    for bp in administrador_blueprints:
+        app.register_blueprint(bp)
+    
+    for bp in autenticacion_blueprints:
+        app.register_blueprint(bp)
+    
+    for bp in usuario_no_registrado_blueprints:
+        app.register_blueprint(bp)
+        
+    for bp in usuario_registrado_blueprints:
+        app.register_blueprint(bp)
     
     return app 

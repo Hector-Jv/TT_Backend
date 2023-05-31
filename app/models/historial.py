@@ -47,14 +47,16 @@ class Historial(db.Model):
             False: Hubo un error al agregar el historial a la base de datos.
         """
         try:
-            usuario_encontrado = Usuario.obtener_usuario_por_correo(cve_usuario)
-            sitio_encontrado = Sitio.obtener_sitio_por_cve(cve_sitio)
             
-            if not Validacion.valor_nulo(usuario_encontrado) or not Validacion.valor_nulo(sitio_encontrado):
-                return False
+            historial_encontrado = Historial.query.filter_by(cve_usuario=cve_usuario, cve_sitio=cve_sitio).first()
+            print(historial_encontrado)
+            if historial_encontrado:
+                historial_encontrado.fecha_visita = datetime.now()
+                db.session.commit()
+                return True
             
             nuevo_historial = Historial(
-                me_gusta = True,
+                me_gusta = 0,
                 fecha_visita = datetime.now(),
                 cve_usuario = cve_usuario,
                 cve_sitio = cve_sitio

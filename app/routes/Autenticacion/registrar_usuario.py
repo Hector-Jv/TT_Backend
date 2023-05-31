@@ -7,42 +7,9 @@ from app.models import Usuario, TipoUsuario
 from app.classes.validacion import Validacion
 from app.classes.imagen import Imagen
 
-PATH_FILE = getcwd() + "/static/usuarios/"
+registrar_usuario_bp = Blueprint('Registrar usuario', __name__)
 
-autenticacion_bp = Blueprint('autenticacion', __name__)
-
-@autenticacion_bp.route('/login', methods=['POST'])
-def inicio_sesion():
-    
-    ## Datos recibidos del usuario ##
-    data = request.get_json()
-    correo: str = data.get('correo')
-    contrasena: str = data.get('contrasena')
-    
-    ## Validacion ##
-    
-    if not Validacion.datos_necesarios(correo, contrasena):
-        return jsonify({"error": "Correo y contraseña requeridos."}), 400
-
-    usuario_encontrado: Usuario = Usuario.obtener_usuario_por_correo(correo)
-    
-    if Validacion.valor_nulo(usuario_encontrado):
-        return jsonify({"error": "El correo no se encuentra registrado."}), 404
-    
-    if not usuario_encontrado.verificar_contrasena(contrasena):
-        return jsonify({"error": "Contraseña incorrecta"}), 401
-    
-    ## Se obtienen los datos del usuario ##
-    
-    access_token = create_access_token(identity=usuario_encontrado.correo_usuario)
-    tipo_usuario: TipoUsuario = TipoUsuario.obtener_tipousuario_por_cve(usuario_encontrado.cve_tipo_usuario)
-    
-    if tipo_usuario.tipo_usuario == 'Administrador' or tipo_usuario.tipo_usuario == 'Usuario registrado':
-        return jsonify({"access_token": access_token, "usuario": usuario_encontrado.usuario, "tipo_usuario": tipo_usuario.tipo_usuario, "foto": usuario_encontrado.nombre_imagen}), 200
-    else:
-        return jsonify({"error": "No se pudo acceder a la cuenta."}), 403
-
-@autenticacion_bp.route('/registro', methods=['GET','POST'])
+@registrar_usuario_bp.route('/registro', methods=['GET','POST'])
 def registrar_usuario():
     
     ## Datos necesarios ##
@@ -91,9 +58,9 @@ def registrar_usuario():
             nombre_imagen = Imagen.guardar(foto=archivo, nombre=usuario, ruta="IMG_USUARIOS")
 
         else:
-            ruta_foto_usuario = None
+            nombre_imagen = None
     else:
-        ruta_foto_usuario = None
+        nombre_imagen = None
         
     ## Creacion de usuario ##
     
@@ -108,11 +75,3 @@ def registrar_usuario():
     usuario_encontrado: Usuario = Usuario.obtener_usuario_por_correo(correo)
     
     return ({"correo_usuario": usuario_encontrado.correo_usuario, "mensaje": "Te has registrado con exito"}),  201
-
-@autenticacion_bp.route('/img_usuario/<string:nombre_imagen>')  
-def obtener_imagen(nombre_imagen):
-    # nombre_imagen debe tener este formato: /nombre_usuario/nombre_foto
-    return send_from_directory(PATH_FILE, path=nombre_imagen, as_attachment=False)
-
-
-    
