@@ -23,8 +23,8 @@ def mostrar_sitios_favoritos():
     historiales_encontrados = Historial.query.filter_by(cve_usuario = usuario_encontrado.correo_usuario).all()
     historiales_de_usuario = [historial.cve_sitio for historial in historiales_encontrados]
     
-    for regla in reglas_asociacion:
+    # for regla in reglas_asociacion:
         
     
-    return jsonify(), 200
+    return jsonify({"mensaje": "en construccion"}), 200
 
