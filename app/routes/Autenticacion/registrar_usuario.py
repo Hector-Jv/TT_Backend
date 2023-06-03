@@ -19,7 +19,7 @@ def registrar_usuario():
 
     ## Validaciones ##
 
-    if not Validacion.datos_necesarios(correo, usuario, contrasena):
+    if not correo or not usuario or not contrasena:
         return jsonify({"error": "Hacen falta datos."}), 400
     
     if not Validacion.formato_correo(correo):
@@ -28,9 +28,8 @@ def registrar_usuario():
     if not Validacion.formato_contrasena(contrasena):
         return jsonify({"error": "La contraseña debe contener al menos 8 caracteres, una letra mayúscula, un número y un carácter especial."}), 400
 
-    usuario_encontrado: Usuario = Usuario.obtener_usuario_por_correo(correo)
+    usuario_encontrado: Usuario = Usuario.query.get(correo)
  
-    
     if not Validacion.valor_nulo(usuario_encontrado):
         return jsonify({"error": "Ya existe el correo ingresado."}), 404
     
@@ -73,5 +72,15 @@ def registrar_usuario():
         return jsonify({"error": "Hubo un error al guardar el usuario en la base de datos. "}), 400
 
     usuario_encontrado: Usuario = Usuario.obtener_usuario_por_correo(correo)
+
+    ## Se obtienen los datos del usuario ##
+    access_token = create_access_token(identity=usuario_encontrado.correo_usuario)
+    tipo_usuario: TipoUsuario = TipoUsuario.query.get(usuario_encontrado.cve_tipo_usuario)
     
-    return ({"correo_usuario": usuario_encontrado.correo_usuario, "mensaje": "Te has registrado con exito"}),  201
+    return jsonify({
+        "access_token": access_token, 
+        "usuario": usuario_encontrado.usuario, 
+        "tipo_usuario": tipo_usuario.tipo_usuario, 
+        "foto": usuario_encontrado.nombre_imagen
+    }), 200
+

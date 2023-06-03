@@ -279,5 +279,9 @@ class Historial(db.Model):
             print("Hubo un error: ", e)
             return None
 
-
+    @staticmethod
+    def obtener_todos_los_historiales():
+        ## Regresa un arreglo con todos los historiales almacenados en la base de datos ##
+        historiales_encontrado = Historial.query.all()
+        return historiales_encontrado
 

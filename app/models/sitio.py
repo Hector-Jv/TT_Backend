@@ -27,14 +27,28 @@ class Sitio(db.Model):
     tipo_sitio = db.relationship('TipoSitio', backref='sitios')
     colonia = db.relationship('Colonia', backref='sitios')
     
+    def __init__(self, nombre_sitio: str, x_longitud: float, y_latitud: float, direccion: str, 
+                 cve_tipo_sitio: int, cve_colonia: int, descripcion: str = "", correo_sitio: str = "", 
+                 fecha_fundacion: datetime = None, costo_promedio: float = 0, pagina_web: str = "", telefono: str = "", 
+                 adscripcion: str = ""):
+        
+        self.nombre_sitio = nombre_sitio
+        self.x_longitud = x_longitud
+        self.y_latitud = y_latitud
+        self.direccion = direccion
+        self.fecha_actualizacion = datetime.utcnow()
+        self.descripcion = descripcion
+        self.correo_sitio = correo_sitio
+        self.fecha_fundacion = fecha_fundacion
+        self.costo_promedio = costo_promedio
+        self.habilitado = True
+        self.pagina_web = pagina_web
+        self.telefono = telefono
+        self.adscripcion = adscripcion
+        self.cve_tipo_sitio = cve_tipo_sitio
+        self.cve_colonia = cve_colonia
     
     def to_dict(self):
-        """
-        Convertir el objeto del sitio a un diccionario.
-
-        Retorno:
-            dict: Diccionario que representa el sitio.
-        """
         return {
             'cve_sitio': self.cve_sitio,
             'nombre_sitio': self.nombre_sitio,
@@ -53,6 +67,15 @@ class Sitio(db.Model):
             'cve_tipo_sitio': self.cve_tipo_sitio,
             'cve_colonia': self.cve_colonia
         }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     @staticmethod
     def agregar_sitio(
