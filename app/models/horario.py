@@ -2,8 +2,7 @@ from app import db
 from app.classes.validacion import Validacion
 
 class Horario(db.Model):
-    cve_horario = db.Column(db.Integer, autoincrement=True, nullable=False)
-    dia = db.Column(db.String(100), nullable=False)
+    dia = db.Column(db.String(100), primary_key=True, unique=True)
     horario_apertura = db.Column(db.Time, nullable=False)
     horario_cierre = db.Column(db.Time, nullable=False)
     cve_sitio = db.Column(db.Integer, db.ForeignKey('sitio.cve_sitio'), nullable=False)
@@ -13,6 +12,15 @@ class Horario(db.Model):
     __table_args__ = (
         db.PrimaryKeyConstraint('cve_horario', 'cve_sitio'),
     )
+
+    def __init__(self, dia, horario_apertura, horario_cierre, cve_sitio):
+        self.dia = dia
+        self.horario_apertura = horario_apertura
+        self.horario_cierre = horario_cierre
+        self.cve_sitio =cve_sitio
+
+
+
 
     def to_dict(self):
         """

@@ -12,6 +12,15 @@ class Colonia(db.Model):
         db.PrimaryKeyConstraint('cve_colonia', 'cve_delegacion'),
     )
     
+    def __init__ (self, nombre_colonia: str, cve_delegacion: int):
+        self.nombre_colonia = nombre_colonia
+        self.cve_delegacion = cve_delegacion
+    
+    
+    
+    
+    
+    
     def to_dict(self):
         """
         Convertir el objeto de la colonia a un diccionario.

@@ -15,6 +15,15 @@ class SitioEtiqueta(db.Model):
             ['etiqueta.cve_etiqueta'],
         ),
     )
+    
+    def __init__(self, cve_sitio:  int, cve_etiqueta: int):
+        self.cve_sitio = cve_sitio
+        self.cve_etiqueta = cve_etiqueta
+    
+    
+    
+    
+    
 
     def to_dict(self):
         """

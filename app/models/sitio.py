@@ -9,44 +9,58 @@ class Sitio(db.Model):
     nombre_sitio = db.Column(db.String(400), nullable=False, unique=True)
     x_longitud = db.Column(db.Float(precision=10), nullable=False)
     y_latitud = db.Column(db.Float(precision=10), nullable=False)
-    direccion = db.Column(db.String(400), nullable=False)
-    
-    fecha_actualizacion = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     descripcion = db.Column(db.String(800), nullable=True)
     correo_sitio = db.Column(db.String(100), nullable=True)
-    fecha_fundacion = db.Column(db.DateTime, nullable=True)
     costo_promedio = db.Column(db.Float(5), nullable=True)
-    habilitado = db.Column(db.Boolean, default=True)
     pagina_web = db.Column(db.String(400), nullable=True)
     telefono = db.Column(db.String(30), nullable=True)
-    adscripcion = db.Column(db.String(400), nullable=True)
-    
+    adscripcion = db.Column(db.String(400), nullable=True) 
+    calificacion = db.Column(db.JSON)
     cve_tipo_sitio = db.Column(db.Integer, db.ForeignKey('tipo_sitio.cve_tipo_sitio'), nullable=False)
     cve_colonia = db.Column(db.Integer, db.ForeignKey('colonia.cve_colonia'), nullable=False)
+    
+    num_calificaciones = db.Column(db.Integer, nullable=True, default=0)
+    fecha_actualizacion = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    habilitado = db.Column(db.Boolean, default=True)
     
     tipo_sitio = db.relationship('TipoSitio', backref='sitios')
     colonia = db.relationship('Colonia', backref='sitios')
     
-    def __init__(self, nombre_sitio: str, x_longitud: float, y_latitud: float, direccion: str, 
-                 cve_tipo_sitio: int, cve_colonia: int, descripcion: str = "", correo_sitio: str = "", 
-                 fecha_fundacion: datetime = None, costo_promedio: float = 0, pagina_web: str = "", telefono: str = "", 
-                 adscripcion: str = ""):
+    def __init__(self, nombre_sitio: str, x_longitud: float, y_latitud: float, cve_tipo_sitio: int, cve_colonia: int,
+                 # Opcionales # 
+                 descripcion: str = "", correo_sitio: str = "", costo_promedio: float = 0, pagina_web: str = "", telefono: str = "",
+                 adscripcion: str = "", calificacion: dict = None):
         
+        # Obligatorios #
         self.nombre_sitio = nombre_sitio
         self.x_longitud = x_longitud
         self.y_latitud = y_latitud
-        self.direccion = direccion
-        self.fecha_actualizacion = datetime.utcnow()
+        self.cve_tipo_sitio = cve_tipo_sitio
+        self.cve_colonia = cve_colonia
+        # Opcionales #
         self.descripcion = descripcion
         self.correo_sitio = correo_sitio
-        self.fecha_fundacion = fecha_fundacion
         self.costo_promedio = costo_promedio
-        self.habilitado = True
         self.pagina_web = pagina_web
         self.telefono = telefono
         self.adscripcion = adscripcion
-        self.cve_tipo_sitio = cve_tipo_sitio
-        self.cve_colonia = cve_colonia
+        self.calificacion = calificacion or {}
+        # Datos generados #
+        self.num_calificaciones = 0
+        self.fecha_actualizacion = datetime.utcnow()
+        self.habilitado = True
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     def to_dict(self):
         return {
@@ -67,16 +81,6 @@ class Sitio(db.Model):
             'cve_tipo_sitio': self.cve_tipo_sitio,
             'cve_colonia': self.cve_colonia
         }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     @staticmethod
     def agregar_sitio(
             nombre_sitio: str, x_longitud: float, y_latitud: float, 
