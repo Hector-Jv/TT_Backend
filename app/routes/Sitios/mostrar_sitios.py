@@ -15,7 +15,9 @@ def mostrar_sitios():
         datos_sitio_dict["nombre_sitio"] = sitio_objeto.nombre_sitio
         datos_sitio_dict["costo_promedio"] = sitio_objeto.costo_promedio
         datos_sitio_dict["cve_tipo_sitio"] = sitio_objeto.cve_tipo_sitio
-        datos_sitio_dict["imagenes"] = [foto_objeto.nombre_imagen for foto_objeto in FotoSitio.query.filter_by(cve_sitio=sitio_objeto.cve_sitio).all()]
+        dict_imagenes = {}
+        arr_imagenes = [{"nombre_imagen": foto_objeto.nombre_imagen} for foto_objeto in FotoSitio.query.filter_by(cve_sitio=sitio_objeto.cve_sitio).all()]
+        datos_sitio_dict["imagenes"] = []
         clave_delegacion = Colonia.query.filter_by(cve_colonia=sitio_objeto.cve_colonia).first().cve_delegacion
         datos_sitio_dict["delegacion"] = Delegacion.query.get(clave_delegacion).nombre_delegacion
         datos_sitio_dict["calificacion"] = sitio_objeto.calificacion

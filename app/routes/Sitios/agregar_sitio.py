@@ -6,7 +6,7 @@ from app.models import Sitio, Delegacion, Colonia, Horario, TipoSitio, Etiqueta,
 from app.classes.validacion import Validacion
 from app.classes.modificar_sitio import modificar_sitio
 
-agregar_sitio_bp = Blueprint('Agregar sitio', __name__)
+agregar_sitio_bp = Blueprint('agregar_sitio', __name__)
 
 @agregar_sitio_bp.route('/crear_sitio', methods=['POST'])
 def crear_sitio(): 
