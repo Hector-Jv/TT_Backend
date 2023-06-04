@@ -60,7 +60,7 @@ def mostrar_sitios():
     
     return jsonify({"mensaje": "Ve en consola"}), 200
 """
-
+"""
 @mostrar_sitios_unr_bp.route('/mostrar_sitios', methods=["GET", "POST"])
 def mostrar_sitios():
 
@@ -104,3 +104,4 @@ def mostrar_sitios():
     print("El tiempo de ejecución fue: ", elapsed_time, " segundos")
         
     return jsonify({"mensaje": "Ve la consola"}), 200
+"""

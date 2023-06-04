@@ -6,7 +6,7 @@ from app.classes.consulta import Consulta
 
 mostrar_sitio_bp = Blueprint('Mostrar sitio', __name__)
 
-@mostrar_sitio_bp.route('/mostrar_sitio_ur', methods=["POST"])
+@mostrar_sitio_bp.route('/mostrar_sitio_ur', methods=["GET", "POST"])
 @jwt_required()
 def mostrar_sitio_usuario_registrado():
     
@@ -20,7 +20,7 @@ def mostrar_sitio_usuario_registrado():
     cve_sitio = data.get("cve_sitio")
     
     if not usuario:
-        return jsonify({"error": "Necesitas estar logueado.", "id_usuario": identificador_usuario}), 404
+        return jsonify({"error": "Usuario no encontrado"}), 404
 
     sitio = Consulta()
     datos_sitio = sitio.obtener_sitio(cve_sitio)

@@ -18,35 +18,14 @@ class Consulta():
         self.conn.close()
     
     def obtener_sitios(self, cve_tipo_sitio: int = 1, orden: int = 1, pagina: int = 0):
-        """
-        , precio_min: float = 0, precio_max: float = 9999, calificacion_min: int = 0, cve_delegacion: int = 0
-        , precio_min, precio_max, calificacion_min, cve_delegacion
-        Obtiene todos los sitios con los datos necesarios para la ruta mostrar_sitios.
-        
-        Entrada:
-            cve_tipo_sitio (int): Clave del tipo sitio
-            orden (int): Opción de orden de datos.
-            pagina (int): Paginación.
-            precio_min (float): Filtro precio mínimo.
-            precio_max (float): Filtro precio máximo.
-            calificación_min (int): Filtro calificación mínima.
-            cve_delegación (int): Filtro delegación
-            
-        Retorna:
-            list: Lista de diccionarios con los datos de los sitios.
-            int: Número de sitios encontrados.
-            
-        """
         sitios = []
         pagina *= 10
-        num_sitios = 0
         try:
             self.cursor.callproc('obtener_sitios', [cve_tipo_sitio, orden, pagina])
             resultados = self.cursor.stored_results()
             
             for resultado in resultados:
                 for sitio in resultado.fetchall():
-                    num_sitios += 1
                     datos = {}
                     datos["cve_sitio"] = sitio[0]
                     datos["nombre_sitio"] = sitio[1]
@@ -62,7 +41,7 @@ class Consulta():
                     
                     sitios.append(datos)
         finally:
-            return sitios, num_sitios
+            return sitios
 
     def obtener_info_fotos_sitio(self, cve_sitio: int):
         fotos = []

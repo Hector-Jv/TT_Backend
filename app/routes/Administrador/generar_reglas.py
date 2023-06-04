@@ -10,7 +10,7 @@ generar_reglas_bp = Blueprint('Generar reglas asociacion', __name__)
 def generar_reglas():
     
     soporte_minimo = 2
-    confianza = 0.75 # Se refiere al porcentaje
+    confianza = 0.70 # Se refiere al porcentaje
     
     ## Se hace una conexion a la base de datos para obtener el historial ##
     historiales_encontrados = Historial.obtener_todos_los_historiales()
