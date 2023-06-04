@@ -18,8 +18,7 @@ def mostrar_sitios():
         datos_sitio_dict["imagenes"] = [foto_objeto.nombre_imagen for foto_objeto in FotoSitio.query.filter_by(cve_sitio=sitio_objeto.cve_sitio).all()]
         clave_delegacion = Colonia.query.filter_by(cve_colonia=sitio_objeto.cve_colonia).first().cve_delegacion
         datos_sitio_dict["delegacion"] = Delegacion.query.get(clave_delegacion).nombre_delegacion
-        dict_calificacion = sitio_objeto.calificacion
-        datos_sitio_dict["calificacion"] = 
+        datos_sitio_dict["calificacion"] = sitio_objeto.calificacion
         
         datos_sitios.append(datos_sitio_dict)
     
