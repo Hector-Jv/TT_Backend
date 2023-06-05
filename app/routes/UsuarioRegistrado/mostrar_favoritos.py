@@ -5,15 +5,14 @@ from app.models import TipoSitio, Sitio, Delegacion, Colonia, Calificacion, Hist
 from app.classes.validacion import Validacion
 from app.classes.consulta import Consulta
 
-mostrar_sitios_favoritos_bp = Blueprint('Mostrar sitios favoritos', __name__)
+mostrar_sitios_favoritos_bp = Blueprint('mostrar_sitios_favoritos', __name__)
 
 @mostrar_sitios_favoritos_bp.route('/mostrar_sitios_favoritos', methods=["GET"])
 @jwt_required()
 def mostrar_sitios_favoritos():
     
-    ## Se obtienen los datos ##
     identificador_usuario = get_jwt_identity()
-    usuario = Usuario.query.get(identificador_usuario)
+    usuario: Usuario = Usuario.query.get(identificador_usuario)
     
     lista_sitios_encontrados = Historial.obtener_historiales_por_megusta(usuario.correo_usuario)
     
