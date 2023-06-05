@@ -7,7 +7,6 @@ mostrar_sitio_bp = Blueprint('mostrar_sitio', __name__)
 @mostrar_sitio_bp.route('/mostrar_sitio/<int:cve_sitio>', methods=["GET", "POST"])
 def mostrar_info_sitio(cve_sitio):
     
-    
     conexion_bd = Consulta()
     datos_sitio = conexion_bd.obtener_sitio(cve_sitio)
     conexion_bd.cerrar_conexion_db()
