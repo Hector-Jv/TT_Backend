@@ -1,3 +1,4 @@
+import json
 from flask import Blueprint, jsonify, request
 from datetime import datetime
 from app import db
@@ -5,6 +6,7 @@ from app.classes.imagen import Imagen
 from app.models import Sitio, Delegacion, Colonia, Horario, TipoSitio, Etiqueta, Servicio, ServicioHotel, SitioEtiqueta, FotoSitio, Historial, Calificacion, CalificacionHotel, CalificacionRestaurante, Comentario, FotoComentario
 from app.classes.validacion import Validacion
 from app.classes.modificar_sitio import modificar_sitio
+import cloudinary.uploader
 
 agregar_sitio_bp = Blueprint('agregar_sitio', __name__)
 
@@ -41,10 +43,20 @@ def crear_sitio():
     # Conversiones #
     longitud = float(longitud)
     latitud = float(latitud)
-    costo = float(costo)
-    cve_tipo_sitio = arr_tipo_sitio["value"]
-    arr_etiquetas = [etiqueta["value"] for etiqueta in arr_etiquetas]
-    cve_delegacion = arr_delegacion["value"]
+    costo = float(costo) if costo else 0
+    
+    arr_tipo_sitio = json.loads(arr_tipo_sitio)
+    cve_tipo_sitio = int(arr_tipo_sitio[0]["value"])
+    
+    arr_etiquetas = json.loads(arr_etiquetas)
+    arreglo_etiquetas = []
+    for etiqueta in arr_etiquetas:
+        arreglo_etiquetas.append(etiqueta["value"])
+    arr_etiquetas = arreglo_etiquetas
+    
+    arr_delegacion = json.loads(arr_delegacion)
+    cve_delegacion = int(arr_delegacion[0]["value"])
+    
     
     # Validaciones #
     if Sitio.query.filter_by(nombre_sitio=nombre_sitio, x_longitud=longitud, y_latitud=latitud).first():
@@ -53,14 +65,25 @@ def crear_sitio():
     # Inserciones #
     obtener_colonia = Colonia.query.filter_by(nombre_colonia=colonia).first()
     if not obtener_colonia:
-        crear_colonia = Colonia(colonia, cve_delegacion)
-        db.session.add(crear_colonia)
-        obtener_colonia = crear_colonia
+        try:
+            crear_colonia = Colonia(
+                colonia, 
+                cve_delegacion
+            )
+            db.session.add(crear_colonia)
+            db.session.commit()
+            obtener_colonia = crear_colonia
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": "Hubo un error al tratar de crear la colonia."}), 400
     
     calificacion_sitio = {
         "promedio": 0
     }
     obtener_tipo_sitio = TipoSitio.query.get(cve_tipo_sitio)
+    
+    
+    
     if obtener_tipo_sitio.tipo_sitio == "Hotel":
         calificacion_sitio["calificaciones_especificas"] = {
             "limpieza": 0,
@@ -90,13 +113,14 @@ def crear_sitio():
             pagina_web,
             telefono,
             adscripcion,
-            calificacion = calificacion_sitio
+            calificacion_sitio
             )
         db.session.add(nuevo_sitio)
+        db.session.commit()
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Hubo un error al tratar de crear el sitio de interés."}), 400
-        
+    
     try:
         for horario in arr_horario:
             nuevo_horario = Horario(
@@ -106,11 +130,12 @@ def crear_sitio():
                 horario["cve_sitio"]
             )
             db.session.add(nuevo_horario)
+            db.session.commit()
     except Exception in e:
         db.session.rollback()
         return jsonify({"error": "Hubo un error al tratar de agregar los horarios del sitio."}), 400
     
-    if obtener_tipo_sitio.tipo_sitio in ["Hotel", "Restaurante", "Museo"]:
+    if obtener_tipo_sitio.tipo_sitio in ["Hotel", "Restaurante", "Museo"] and arr_etiquetas:
         try:
             for cve_etiqueta in arr_etiquetas:
                 nueva_relacion = SitioEtiqueta(
@@ -118,29 +143,39 @@ def crear_sitio():
                     cve_etiqueta
                 )
                 db.session.add(nueva_relacion)
+                db.session.commit()
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": "Hubo un error al tratar de agregar las etiqueta del sitio."}), 400
     
-    """
-    if 'foto_sitio' in request.files:
-        archivo = request.files['foto_sitio']
-        
-        if archivo.filename != '':
-            
-            if not Imagen.verificar_extension(archivo):
-                return jsonify({"error": "La imagen no tiene una extensión válida. "}), 400
-            
-            if not Imagen.tamaño_permitido(archivo):
-                return jsonify({"error": "La imagen es demasiado grande. "}), 400
-            
-            if not Imagen.validar_imagen(archivo):
-                return jsonify({"error": "Hubo un problema al intentar abrir la imagen. "}), 400
-            
-            nombre_imagen = Imagen.guardar(foto=archivo, nombre=nombre_sitio, ruta="IMG_SITIOS")
+    ## MANEJO DE IMAGENES ##
+    try:
+        fotos = request.files.getlist('fotos_sitio')
 
-            if not FotoSitio.guardar_imagen(nombre_imagen, sitio_encontrado.cve_sitio):
-                return jsonify({"error": "Hubo un problema al intentar guardar la imagen. "}), 400
-    """
+        links_imagenes = []
+        for foto in fotos:
+            if foto.filename != '':
+                # VALIDACIONES #
+                extensiones_validas = {'png', 'jpg', 'jpeg', 'gif'}
+                if '.' not in foto.filename and foto.filename.rsplit('.', 1)[1].lower() not in extensiones_validas:
+                    return jsonify({"error": "La imagen no tiene una extensión válida. "}), 400
+                
+                # SE SUBE LA IMAGEN #
+                result = cloudinary.uploader.upload(foto)
+                links_imagenes.append(result['secure_url'])
+                
+                foto_sitio = FotoSitio(
+                    link_imagen = result['secure_url'],
+                    cve_sitio = nuevo_sitio.cve_sitio,
+                    nombre_imagen='x',
+                    nombre_autor='x'
+                )
+                db.session.add(foto_sitio)
+                db.session.commit()
+    except Exception as e:
+        print("Error: ", e)
+        db.session.rollback()
+        return jsonify({"error": "Hubo un error al tratar de agregar las imagenes del sitio."}), 400
+
     db.session.commit()
     return jsonify({"mensaje": "Sitio creado con éxito"}), 201

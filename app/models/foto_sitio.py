@@ -10,6 +10,12 @@ class FotoSitio(db.Model):
     nombre_autor = db.Column(db.String(400), nullable=True)
     cve_sitio = db.Column(db.Integer, db.ForeignKey('sitio.cve_sitio'), nullable=False)
 
+    def __init__(self, nombre_imagen, link_imagen, nombre_autor, cve_sitio):
+        self.nombre_imagen = nombre_imagen
+        self.link_imagen = link_imagen
+        self.nombre_autor = nombre_autor
+        self.cve_sitio = cve_sitio
+
     __table_args__ = (
         db.PrimaryKeyConstraint('cve_foto_sitio', 'cve_sitio'),
     )
