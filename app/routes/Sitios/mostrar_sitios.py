@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify
 from app import db
 from app.models import Sitio, Delegacion, FotoSitio ,Colonia
 
-mostrar_sitios_bp = Blueprint('mostrar_sitios_ur', __name__)
+mostrar_sitios_bp = Blueprint('mostrar_sitios', __name__)
 
 @mostrar_sitios_bp.route('/mostrar_sitios', methods=["GET"])
 def mostrar_sitios():
@@ -20,7 +20,7 @@ def mostrar_sitios():
         datos_sitio_dict["imagenes"] = []
         clave_delegacion = Colonia.query.filter_by(cve_colonia=sitio_objeto.cve_colonia).first().cve_delegacion
         datos_sitio_dict["delegacion"] = Delegacion.query.get(clave_delegacion).nombre_delegacion
-        datos_sitio_dict["calificacion"] = sitio_objeto.calificacion
+        # datos_sitio_dict["calificacion"] = sitio_objeto.calificacion
         
         datos_sitios.append(datos_sitio_dict)
     
