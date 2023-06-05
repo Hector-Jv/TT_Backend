@@ -128,23 +128,21 @@ def registrar_usuario():
             link_imagen = link_foto
         )
         db.session.add(nuevo_usuario)
+        db.session.commit()
     except Exception as e:
         return jsonify({"mensaje": "Error al crear al usuario"}), 400
 
-    usuario_encontrado: Usuario = Usuario.obtener_usuario_por_correo(correo)
-
     ## Se obtienen los datos del usuario ##
-    access_token = create_access_token(identity=usuario_encontrado.correo_usuario)
-    tipo_usuario: TipoUsuario = TipoUsuario.query.get(usuario_encontrado.cve_tipo_usuario)
+    access_token = create_access_token(identity=nuevo_usuario.correo_usuario)
+    tipo_usuario: TipoUsuario = TipoUsuario.query.get(nuevo_usuario.cve_tipo_usuario)
     
     return jsonify({
         "access_token": access_token, 
-        "usuario": usuario_encontrado.usuario, 
+        "usuario": nuevo_usuario.usuario, 
         "tipo_usuario": tipo_usuario.tipo_usuario, 
         "link_imagen": link_foto
     }), 200
       
-    return jsonify({"mensaje": "Ve la consola"}), 200
 
 """
     fotos = request.files.getlist('foto_usuario')

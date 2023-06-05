@@ -29,6 +29,6 @@ def inicio_sesion():
     tipo_usuario: TipoUsuario = TipoUsuario.query.get(usuario_encontrado.cve_tipo_usuario)
     
     if tipo_usuario.tipo_usuario == 'Administrador' or tipo_usuario.tipo_usuario == 'Usuario registrado':
-        return jsonify({"access_token": access_token, "usuario": usuario_encontrado.usuario, "tipo_usuario": tipo_usuario.tipo_usuario, "foto": usuario_encontrado.nombre_imagen}), 200
+        return jsonify({"access_token": access_token, "usuario": usuario_encontrado.usuario, "tipo_usuario": tipo_usuario.tipo_usuario, "foto": usuario_encontrado.link_imagen}), 200
     else:
         return jsonify({"error": "No se pudo acceder a la cuenta."}), 403

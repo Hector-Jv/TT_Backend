@@ -13,6 +13,16 @@ class Usuario(db.Model, UserMixin):
     link_imagen = db.Column(db.String(400), nullable=True)
     cve_tipo_usuario = db.Column(db.Integer, db.ForeignKey('tipo_usuario.cve_tipo_usuario'), nullable=False)
     habilitado = db.Column(db.Boolean, nullable=False)
+    
+    def __init__(self, correo_usuario, usuario, contrasena, link_imagen):
+        self.correo_usuario = correo_usuario
+        self.usuario = usuario
+        self.contrasena = contrasena
+        self.link_imagen = link_imagen
+        self.cve_tipo_usuario = 1
+        self.habilitado = True
+    
+    
 
     tipo_usuario = db.relationship('TipoUsuario', backref='usuarios')
     
