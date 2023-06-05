@@ -10,7 +10,7 @@ class Usuario(db.Model, UserMixin):
     correo_usuario = db.Column(db.String(100), primary_key=True, unique=True)
     usuario = db.Column(db.String(100), nullable=False, unique=True)
     contrasena_hash  = db.Column(db.String(128))
-    nombre_imagen = db.Column(db.String(400), nullable=True)
+    link_imagen = db.Column(db.String(400), nullable=True)
     cve_tipo_usuario = db.Column(db.Integer, db.ForeignKey('tipo_usuario.cve_tipo_usuario'), nullable=False)
     habilitado = db.Column(db.Boolean, nullable=False)
 

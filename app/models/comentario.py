@@ -15,6 +15,11 @@ class Comentario(db.Model):
         db.PrimaryKeyConstraint('cve_comentario', 'cve_historial'),
     )
     
+    def __init__(self, comentario: str, fecha_comentario: datetime, cve_historial: int):
+        self.comentario = comentario
+        self.fecha_comentario = fecha_comentario
+        self.cve_historial = cve_historial
+    
     def to_dict(self):
         """
         Convertir el objeto del Comentario a un diccionario.

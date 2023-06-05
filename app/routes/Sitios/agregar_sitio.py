@@ -123,7 +123,6 @@ def crear_sitio():
             return jsonify({"error": "Hubo un error al tratar de agregar las etiqueta del sitio."}), 400
     
     """
-    if 
     if 'foto_sitio' in request.files:
         archivo = request.files['foto_sitio']
         

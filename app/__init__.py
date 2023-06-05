@@ -7,11 +7,13 @@ from flask_login import LoginManager # Para la autenticación y gestión de sesi
 from flask_jwt_extended import JWTManager # Para la autenticación y autorización basada en tokens JWT.
 import os # Para interactuar con el sistema operativo.
 from datetime import timedelta # para representar y manipular intervalos de tiempo.
+import cloudinary
+import cloudinary.uploader
 
 
 db = SQLAlchemy() # Instancia para interactuar con la base de datos.
 migrate = Migrate() # Intancia para gestionar las migraciones.
-login_manager = LoginManager() # Instancia para gestionar la autenticación de usuarios y las sesiones.
+login_manager = LoginManager() # Instancia para gestionar la autenticación de usuarios y las sesiones
 
 def create_app(config_class=Config):
     
@@ -25,6 +27,13 @@ def create_app(config_class=Config):
     db.init_app(app) # Inicializa instancia de SQLAlchemy.
     migrate.init_app(app, db) # Inicializa instancia de Migrate
     CORS(app) # Habilita y configura CORS.
+    
+    cloudinary.config(
+        cloud_name = 'dtkguz4bw',  
+        api_key = '195693333719175',  
+        api_secret = 'bV0qc5Ev1g-vywkhCZcPbf4bwAE', 
+        secure = True
+    )
     
     login_manager.init_app(app) # Inicializa instancia LoginManager.
     app.config["IMG_SITIOS"] = "static/sitios/"

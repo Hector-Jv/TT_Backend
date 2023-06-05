@@ -1,15 +1,10 @@
-from .agregar_favorito import agregar_favorito_bp
-# from .crear_comentario import
-# from .eliminar_comentario import
-# from .eliminar_cuenta import
-# from .modificar_comentario import
-# from .modificar_cuenta import
-from .mostrar_favoritos import mostrar_sitios_favoritos_bp
-from .mostrar_recomendaciones import mostrar_recomendaciones_bp
+from .Comentarios import all_blueprints_comentarios
+from .Cuenta import all_blueprints_cuenta
+from .Sitios import all_blueprints_sitios
 
+all_blueprints = []
 
-all_blueprints = (
-    agregar_favorito_bp,
-    mostrar_sitios_favoritos_bp,
-    mostrar_recomendaciones_bp
-)
+all_blueprints.extend(all_blueprints_comentarios)
+all_blueprints.extend(all_blueprints_cuenta)
+all_blueprints.extend(all_blueprints_sitios)
+
