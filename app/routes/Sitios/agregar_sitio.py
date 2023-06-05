@@ -25,14 +25,11 @@ def crear_sitio():
         pagina_web = request.form["pagina_web"]
         telefono = request.form["telefono"]
         adscripcion = request.form["adscripcion"]
-        arr_tipo_sitio = request.form["tipo_sitio"] # arreglo diccionarios 
-        
-        # Modelo Colonia y Delegacion #   
-        arr_delegacion = request.form["delegacion"] # arreglo de diccionarios
+        cve_tipo_sitio = int(request.form["tipo_sitio"]) 
+        arr_delegacion = int(request.form["delegacion"])
         colonia = request.form["colonia"]
-        
         # Modelo SitioEtiqueta #
-        arr_etiquetas = request.form["etiquetas"] # arreglo diccionarios
+        arreglo_etiquetas = request.form["etiquetas"] # arreglo diccionarios
         
         # Modelo Horario
         arr_horario = request.form["horarios"] # arreglo de diccionarios
@@ -44,15 +41,6 @@ def crear_sitio():
     longitud = float(longitud)
     latitud = float(latitud)
     costo = float(costo) if costo else 0
-    
-    arr_tipo_sitio = json.loads(arr_tipo_sitio)
-    cve_tipo_sitio = int(arr_tipo_sitio[0]["value"])
-    
-    arr_etiquetas = json.loads(arr_etiquetas)
-    arreglo_etiquetas = []
-    for etiqueta in arr_etiquetas:
-        arreglo_etiquetas.append(etiqueta["value"])
-    arr_etiquetas = arreglo_etiquetas
     
     arr_delegacion = json.loads(arr_delegacion)
     cve_delegacion = int(arr_delegacion[0]["value"])
@@ -125,8 +113,8 @@ def crear_sitio():
             db.session.add(nuevo_horario)
 
         # Insertar etiquetas
-        if obtener_tipo_sitio.tipo_sitio in ["Hotel", "Restaurante", "Museo"] and arr_etiquetas:
-            for cve_etiqueta in arr_etiquetas:
+        if obtener_tipo_sitio.tipo_sitio in ["Hotel", "Restaurante", "Museo"] and arreglo_etiquetas:
+            for cve_etiqueta in arreglo_etiquetas:
                 nueva_relacion = SitioEtiqueta(
                     nuevo_sitio.cve_sitio,
                     cve_etiqueta
