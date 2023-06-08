@@ -45,7 +45,6 @@ def create_app(config_class=Config):
     for bp in sitios_blueprints:
         app.register_blueprint(bp)
     
-    
     for bp in administrador_blueprints:
         app.register_blueprint(bp)
     
