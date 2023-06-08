@@ -37,7 +37,7 @@ def create_app(config_class=Config):
     from .routes.Administrador import all_blueprints as administrador_blueprints
     from .routes.Autenticacion import all_blueprints as autenticacion_blueprints
     from .routes.Sitios import all_blueprints as sitios_blueprints
-    #from .routes.UsuarioRegistrado import all_blueprints as usuario_registrado_blueprints
+    from .routes.UsuarioRegistrado import all_blueprints as usuario_registrado_blueprints
     
     for bp in autenticacion_blueprints:
         app.register_blueprint(bp)
@@ -49,10 +49,7 @@ def create_app(config_class=Config):
     for bp in administrador_blueprints:
         app.register_blueprint(bp)
     
-    
-    """
-        
     for bp in usuario_registrado_blueprints:
         app.register_blueprint(bp)
-    """
+    
     return app 

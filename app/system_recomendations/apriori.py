@@ -39,7 +39,6 @@ class Apriori:
             matriz_elementos.append(contabilizacion)
         
         # Se muestra una tabla donde se representa si en una transacción tiene un cierto item #
-        print(type(matriz_elementos))
         dataframe_datos = pd.DataFrame(matriz_elementos)
         dataframe_datos.columns = nombre_columnas
         print("#####################################")

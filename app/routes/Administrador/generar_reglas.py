@@ -14,7 +14,7 @@ def generar_reglas():
     
     ## Se hace una conexion a la base de datos para obtener el historial ##
     historiales_encontrados = Historial.query.all()
-    arreglo_historiales = [(historial.cve_usuario, historial.cve_sitio) for historial in historiales_encontrados]
+    arreglo_historiales = [(historial.correo_usuario, historial.cve_sitio) for historial in historiales_encontrados]
     
     # Se ordena por correo electronico
     arreglo_historiales.sort(key=lambda x: x[0])

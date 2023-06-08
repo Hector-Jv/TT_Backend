@@ -1,26 +1,31 @@
 from flask import Blueprint, jsonify, request
 from app import db
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from app.models import TipoSitio, Sitio, Delegacion, Colonia, Calificacion, Historial, Horario, ServicioHotel, Servicio, SitioEtiqueta, Etiqueta, FotoSitio, Usuario
+from app.models import Historial, Usuario
 import json
 
 mostrar_recomendaciones_bp = Blueprint('Mostrar recomendaciones', __name__)
 
+#@jwt_required()
 @mostrar_recomendaciones_bp.route('/mostrar_recomendaciones', methods=["GET"])
-@jwt_required()
 def mostrar_sitios_favoritos():
     
     # Datos necesarios ##
     # Token de usuario
     # json con la clave de sitio
+    #print("Usuario: ", usuario_encontrado.correo_usuario)
     
-    identificador_usuario = get_jwt_identity()
-    usuario_encontrado:Usuario = Usuario.query.get(identificador_usuario)
+    # identificador_usuario = get_jwt_identity()
+    #usuario_encontrado:Usuario = Usuario.query.get(identificador_usuario)
+    nom_usuario = 'Aaron'
+    usuario_encontrado:Usuario = Usuario.query.filter_by(usuario=nom_usuario)
+    
+    print("Usuario: ", usuario_encontrado.correo_usuario)
     
     historiales_encontrados = Historial.query.filter_by(cve_usuario = usuario_encontrado.correo_usuario).all()
     historiales_de_usuario = sorted([historial.cve_sitio for historial in historiales_encontrados])
     
-    if len(historiales_de_usuario) < 5:
+    if len(historiales_de_usuario) < 2:
         return jsonify({"mensaje": "No hay suficientes datos para generar recomendaciones."}), 400
 
     with open('app/data/reglas_asociacion.json', 'r') as f:

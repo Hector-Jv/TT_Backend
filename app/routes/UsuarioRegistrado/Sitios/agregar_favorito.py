@@ -5,8 +5,8 @@ from app.models import Usuario, Historial
 
 agregar_favorito_bp = Blueprint('agregar_favorito', __name__)
 
-@agregar_favorito_bp.route('/agregar_sitio_favorito/<int:cve_sitio>', methods=["POST"])
 @jwt_required()
+@agregar_favorito_bp.route('/agregar_sitio_favorito/<int:cve_sitio>', methods=["POST"])
 def agregar_sitio_favorito(cve_sitio):
     
     identificador_usuario = get_jwt_identity()
