@@ -13,7 +13,7 @@ def generar_reglas():
     confianza = 0.70 # Se refiere al porcentaje
     
     ## Se hace una conexion a la base de datos para obtener el historial ##
-    historiales_encontrados = Historial.obtener_todos_los_historiales()
+    historiales_encontrados = Historial.query.all()
     arreglo_historiales = [(historial.cve_usuario, historial.cve_sitio) for historial in historiales_encontrados]
     
     # Se ordena por correo electronico

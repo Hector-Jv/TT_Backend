@@ -13,9 +13,9 @@ class Historial(db.Model):
     cve_sitio = db.Column(db.Integer, db.ForeignKey('sitio.cve_sitio'), nullable=False)
     
     
-    def __init__(self, cve_usuario: int, cve_sitio: int):
+    def __init__(self, correo_usuario: int, cve_sitio: int):
         self.me_gusta = False
         self.fecha_visita = datetime.utcnow()
-        self.cve_usuario = cve_usuario
+        self.correo_usuario = correo_usuario
         self.cve_sitio = cve_sitio
         

@@ -18,6 +18,16 @@
 ]
 
 
+[
+    {
+        "cve_etiqueta": 1,
+        "nombre": "Ciencia y tecnología"
+    }
+]
+
+
+
+
 # Ruta /mostrar_sitio/<int:cve_sitio>
 ## Entrada
     obligatorio: cve_sitio

@@ -1,8 +1,7 @@
 import json
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Sitio, Colonia, Horario, TipoSitio, SitioEtiqueta, FotoSitio
-from app.classes.modificar_sitio import modificar_sitio
+from app.models import Sitio, Colonia, Horario, TipoSitio, SitioEtiqueta, FotoSitio, ServicioHotel
 import cloudinary.uploader
 
 crear_sitio_bp = Blueprint('crear_sitio', __name__)
@@ -28,6 +27,9 @@ def crear_sitio():
         # Modelo SitioEtiqueta #
         arreglo_etiquetas = request.form["etiquetas"]
         
+        # Modelo ServicioHotel #
+        arreglo_servicios = request.form["servicios"]
+        
         # Modelo Horario
         arreglo_horario = request.form["horarios"]
         
@@ -38,6 +40,8 @@ def crear_sitio():
         arreglo_etiquetas = json.loads(arreglo_etiquetas)
     if arreglo_horario:
         arreglo_horario = json.loads(arreglo_horario)
+    if arreglo_servicios:
+        arreglo_servicios = json.loads(arreglo_servicios)
     
     
     # Validaciones #
@@ -91,10 +95,18 @@ def crear_sitio():
         
     # Insertar etiquetas
     if obtener_tipo_sitio.tipo_sitio in ["Restaurante", "Museo"] and arreglo_etiquetas:
-        for cve_etiqueta in arreglo_etiquetas:
+        for etiqueta in arreglo_etiquetas:
             nueva_relacion = SitioEtiqueta(
                 nuevo_sitio.cve_sitio,
-                cve_etiqueta["cve_etiqueta"]
+                etiqueta["cve_etiqueta"]
+            )
+            db.session.add(nueva_relacion)
+            
+    if obtener_tipo_sitio.tipo_sitio == "Hotel" and arreglo_servicios:
+        for servicio in arreglo_servicios:
+            nueva_relacion = ServicioHotel(
+                nuevo_sitio.cve_sitio,
+                servicio["cve_servicio"]
             )
             db.session.add(nueva_relacion)
                 

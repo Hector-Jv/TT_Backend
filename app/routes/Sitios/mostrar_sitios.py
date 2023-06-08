@@ -20,12 +20,13 @@ def mostrar_sitios():
         datos_sitio_dict["cve_tipo_sitio"] = sitio_objeto.cve_tipo_sitio
         
         arr_imagenes = []
-        fotos_encontradas = FotoSitio.query.filter_by(cve_sitio=sitio_objeto.cve_sitio).all()
+        fotos_encontradas = FotoSitio.query.filter_by(cve_sitio=sitio_objeto.cve_sitio).all() # []
         if fotos_encontradas:
             for foto_objeto in fotos_encontradas:
                 dict_foto = {}
                 dict_foto["cve_foto_sitio"] = foto_objeto.cve_foto_sitio
                 dict_foto["link_imagen"] = foto_objeto.link_imagen
+                arr_imagenes.append(dict_foto)
         datos_sitio_dict["imagenes"] = arr_imagenes
         clave_delegacion = Colonia.query.filter_by(cve_colonia=sitio_objeto.cve_colonia).first().cve_delegacion
         datos_sitio_dict["delegacion"] = Delegacion.query.get(clave_delegacion).nombre_delegacion

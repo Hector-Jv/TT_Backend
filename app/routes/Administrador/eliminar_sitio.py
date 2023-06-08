@@ -1,9 +1,6 @@
 from flask import Blueprint, jsonify, request
-from datetime import datetime
 from app import db
-from app.classes.imagen import Imagen
-from app.models import Sitio, Delegacion, Colonia, Horario, TipoSitio, Etiqueta, Servicio, ServicioHotel, SitioEtiqueta, FotoSitio, Historial, Calificacion, CalificacionHotel, CalificacionRestaurante, Comentario, FotoComentario
-from app.classes.validacion import Validacion
+from app.models import Sitio, Delegacion, Colonia, Horario, TipoSitio, Etiqueta, Servicio, ServicioHotel, SitioEtiqueta, FotoSitio, Historial, Comentario, FotoComentario
 from app.classes.modificar_sitio import modificar_sitio
 import json
 
@@ -29,25 +26,6 @@ def eliminar_sitio():
     
     if historiales_encontrados:
         for historial in historiales_encontrados:
-           
-            ## Calificaciones ##
-            calificaciones_encontradas = Calificacion.obtener_calificaciones_por_cvehistorial(historial.cve_historial)
-           
-            if calificaciones_encontradas:
-                
-                for calificacion in calificaciones_encontradas:
-                    ## Calificacion especifica (hotel) ##
-                    if TipoSitio.obtener_tipositio_por_nombre("Hotel").cve_tipo_sitio == sitio_encontrado.cve_tipo_sitio:
-                        calificacionhotel_encontrada: CalificacionHotel = CalificacionHotel.obtener_calificacionhotel_por_cve(calificacion.cve_calificacion)
-                        if calificacionhotel_encontrada:
-                            CalificacionHotel.eliminar_calificacion(calificacionhotel_encontrada.cve_calificacion)
-                    ## Calificacion especifica (hotel) ##
-                    if TipoSitio.obtener_tipositio_por_nombre("Restaurante").cve_tipo_sitio == sitio_encontrado.cve_tipo_sitio:
-                        calificacionrestaurante: CalificacionRestaurante = CalificacionRestaurante.obtener_calificacionrestaurante_por_cve(calificacion.cve_calificacion)
-                        if calificacionrestaurante:
-                            CalificacionRestaurante.eliminar_calificacion(calificacionrestaurante.cve_calificacion)
-            
-                    Calificacion.eliminar_calificacion(calificacion)
             
             ## Comentarios ##
             comentarios_encontrados = Comentario.obtener_comentario_por_historial(historial.cve_historial)

@@ -1,10 +1,31 @@
 from flask import Blueprint, jsonify
-from app.models import Sitio, Horario, TipoSitio, FotoSitio, Colonia, Delegacion, SitioEtiqueta, Etiqueta, Historial, Comentario, FotoComentario
+from app.models import Sitio, Horario, Usuario, TipoSitio, FotoSitio, Colonia, Delegacion, SitioEtiqueta, Etiqueta, Historial, Comentario, FotoComentario
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from app import db
+from datetime import datetime
 
 mostrar_sitio_bp = Blueprint('mostrar_sitio', __name__)
 
 @mostrar_sitio_bp.route('/mostrar_sitio/<int:cve_sitio>', methods=["GET"])
 def mostrar_info_sitio(cve_sitio):
+    
+    # identificador_usuario = get_jwt_identity()
+    #usuario: Usuario = Usuario.query.get(identificador_usuario)
+    nom_usuario = 'Mr spiderman'
+    usuario:Usuario = Usuario.query.filter_by(usuario=nom_usuario).first()
+    
+    historial_encontrado:Historial = Historial.query.filter_by(correo_usuario=usuario.correo_usuario, cve_sitio=cve_sitio).first()
+    
+    if historial_encontrado:
+        historial_encontrado.fecha_visita = datetime.utcnow()
+    else:
+        nuevo_historial = Historial(
+            usuario.correo_usuario,
+            cve_sitio
+            )
+        db.session.add(nuevo_historial)
+    db.session.commit()
+    
     
     sitio_dict = {}
     
@@ -15,8 +36,8 @@ def mostrar_info_sitio(cve_sitio):
     
     sitio_dict["cve_sitio"] = cve_sitio
     sitio_dict["nombre_sitio"] = sitio_encontrado.nombre_sitio
-    sitio_dict["longitud"] = sitio_encontrado.x_longitud
-    sitio_dict["latitud"] = sitio_encontrado.y_latitud
+    sitio_dict["longitud"] = sitio_encontrado.longitud
+    sitio_dict["latitud"] = sitio_encontrado.latitud
     sitio_dict["descripcion"] = sitio_encontrado.descripcion
     sitio_dict["correo"] = sitio_encontrado.correo_sitio
     sitio_dict["costo"] = sitio_encontrado.costo_promedio
@@ -32,8 +53,8 @@ def mostrar_info_sitio(cve_sitio):
         info_horario = {}
         info_horario["cve_horario"] = horario.cve_horario
         info_horario["dia"] = horario.dia
-        info_horario["horario_apertura"] = horario.horario_apertura
-        info_horario["horario_cierre"] = horario.horario_cierre
+        info_horario["horario_apertura"] = str(horario.horario_apertura)
+        info_horario["horario_cierre"] = str(horario.horario_cierre)
         horarios.append(info_horario)
     sitio_dict["horarios"] = horarios
     
@@ -86,5 +107,6 @@ def mostrar_info_sitio(cve_sitio):
             comentario["fotos_comentario"] = fotosC
             comentarios.append(comentario)
     sitio_dict["comentarios"] = comentarios
+    
     
     return jsonify(sitio_dict), 200
