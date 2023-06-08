@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from app import db
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.models import Usuario, Historial
@@ -6,8 +6,11 @@ from app.models import Usuario, Historial
 agregar_favorito_bp = Blueprint('agregar_favorito', __name__)
 
 @jwt_required()
-@agregar_favorito_bp.route('/agregar_sitio_favorito/<int:cve_sitio>', methods=["POST"])
-def agregar_sitio_favorito(cve_sitio):
+@agregar_favorito_bp.route('/agregar_sitio_favorito', methods=["POST"])
+def agregar_sitio_favorito():
+    
+    data = request.get_json()
+    cve_sitio = data.get('cve_sitio')
     
     identificador_usuario = get_jwt_identity()
     usuario:Usuario = Usuario.query.get(identificador_usuario)
