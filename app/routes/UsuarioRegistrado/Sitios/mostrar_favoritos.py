@@ -1,18 +1,28 @@
 from flask import Blueprint, jsonify
 from app import db
-from app.models import Sitio, Delegacion, FotoSitio ,Colonia
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from app.models import Sitio, Delegacion, FotoSitio ,Colonia, Usuario, Historial
 
 mostrar_favoritos_bp = Blueprint('mostrar_favoritos', __name__)
 
+@jwt_required()
 @mostrar_favoritos_bp.route('/mostrar_favoritos', methods=["GET"])
 def mostrar_favoritos():
     sitios_encontrados = Sitio.query.all() # [sitios]
+    
+    identificador_usuario = get_jwt_identity()
+    usuario_encontrado: Usuario = Usuario.query.get(identificador_usuario)
     
     datos_sitios = []
     for sitio_objeto in sitios_encontrados:
         if sitio_objeto.habilitado == False:
             continue
         
+        historial_encontrado: Historial = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, cve_sitio=sitio_objeto.cve_sitio).first()
+        
+        if historial_encontrado.me_gusta == False:
+            continue
+    
         datos_sitio_dict = {}
         datos_sitio_dict["cve_sitio"] = sitio_objeto.cve_sitio
         datos_sitio_dict["nombre_sitio"] = sitio_objeto.nombre_sitio
@@ -25,9 +35,8 @@ def mostrar_favoritos():
             for foto_objeto in fotos_encontradas:
                 dict_foto = {}
                 dict_foto["cve_foto_sitio"] = foto_objeto.cve_foto_sitio
-                dict_foto["nombre_imagen"] = foto_objeto.nombre_imagen
                 dict_foto["link_imagen"] = foto_objeto.link_imagen
-                dict_foto["nombre_autor"] = foto_objeto.nombre_autor
+                arr_imagenes.append(dict_foto)
         datos_sitio_dict["imagenes"] = arr_imagenes
         clave_delegacion = Colonia.query.filter_by(cve_colonia=sitio_objeto.cve_colonia).first().cve_delegacion
         datos_sitio_dict["delegacion"] = Delegacion.query.get(clave_delegacion).nombre_delegacion
