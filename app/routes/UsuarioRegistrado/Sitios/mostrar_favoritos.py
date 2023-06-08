@@ -4,12 +4,12 @@ from app.models import Sitio, Delegacion, FotoSitio ,Colonia, Usuario, Historial
 
 mostrar_favoritos_bp = Blueprint('mostrar_favoritos', __name__)
 
-@mostrar_favoritos_bp.route('/mostrar_favoritos/<string:correo_usuario>', methods=["GET"])
-def mostrar_favoritos(correo_usuario):
+@mostrar_favoritos_bp.route('/mostrar_favoritos/<string:usuario>', methods=["GET"])
+def mostrar_favoritos(usuario):
     try:
         sitios_encontrados = Sitio.query.all()
         
-        usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
+        usuario_encontrado: Usuario = Usuario.query.filter_by(usuario=usuario).first()
         
         datos_sitios = []
         for sitio_objeto in sitios_encontrados:
