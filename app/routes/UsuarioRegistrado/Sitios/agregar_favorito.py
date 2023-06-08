@@ -9,10 +9,10 @@ def agregar_sitio_favorito():
     
     try:
         data = request.get_json()
-        correo_usuario = data.get('correo_usuario')
+        usuario = data.get('usuario')
         cve_sitio = data.get('cve_sitio')
         
-        usuario: Usuario = Usuario.query.get(correo_usuario)
+        usuario: Usuario = Usuario.query.filter_by(usuario=usuario).first()
         
         if not usuario:
             return jsonify({"error": "Necesitas iniciar sesión para realizar la acción."}), 404
