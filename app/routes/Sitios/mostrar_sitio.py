@@ -11,7 +11,7 @@ def mostrar_info_sitio(cve_sitio):
     
     # identificador_usuario = get_jwt_identity()
     #usuario: Usuario = Usuario.query.get(identificador_usuario)
-    nom_usuario = 'Mr spiderman'
+    nom_usuario = 'Sanchez Perez'
     usuario:Usuario = Usuario.query.filter_by(usuario=nom_usuario).first()
     
     historial_encontrado:Historial = Historial.query.filter_by(correo_usuario=usuario.correo_usuario, cve_sitio=cve_sitio).first()
