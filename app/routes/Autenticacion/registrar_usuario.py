@@ -11,6 +11,12 @@ registrar_usuario_bp = Blueprint('Registrar usuario', __name__)
 @registrar_usuario_bp.route('/registro', methods=['POST'])
 def registrar_usuario():
     
+    ids_necesarios = ['correo', 'usuario', 'contrasena']
+    
+    for id in ids_necesarios:
+        if id not in request.form:
+            return jsonify({"error": "Hacen falta datos."}), 400
+            
     ## DATOS ##
     correo = request.form['correo']
     usuario = request.form['usuario']

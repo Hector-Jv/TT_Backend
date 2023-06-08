@@ -25,9 +25,7 @@ def mostrar_sitios():
             for foto_objeto in fotos_encontradas:
                 dict_foto = {}
                 dict_foto["cve_foto_sitio"] = foto_objeto.cve_foto_sitio
-                dict_foto["nombre_imagen"] = foto_objeto.nombre_imagen
                 dict_foto["link_imagen"] = foto_objeto.link_imagen
-                dict_foto["nombre_autor"] = foto_objeto.nombre_autor
         datos_sitio_dict["imagenes"] = arr_imagenes
         clave_delegacion = Colonia.query.filter_by(cve_colonia=sitio_objeto.cve_colonia).first().cve_delegacion
         datos_sitio_dict["delegacion"] = Delegacion.query.get(clave_delegacion).nombre_delegacion

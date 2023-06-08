@@ -1,8 +1,7 @@
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token
 from app import db
 from app.models import Usuario, TipoUsuario
-from app.classes.validacion import Validacion
 
 iniciar_sesion_bp = Blueprint('Iniciar sesion', __name__)
 
@@ -32,3 +31,5 @@ def inicio_sesion():
         return jsonify({"access_token": access_token, "usuario": usuario_encontrado.usuario, "tipo_usuario": tipo_usuario.tipo_usuario, "link_imagen": usuario_encontrado.link_imagen}), 200
     else:
         return jsonify({"error": "No se pudo acceder a la cuenta."}), 403
+
+        
