@@ -1,4 +1,5 @@
-from flask import Flask 
+from flask import Flask
+from flask_login import LoginManager 
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -12,6 +13,8 @@ import cloudinary.uploader
 
 db = SQLAlchemy() # Instancia para interactuar con la base de datos.
 migrate = Migrate() # Intancia para gestionar las migraciones.
+login_manager = LoginManager()
+
 
 def create_app(config_class=Config):
     
@@ -32,6 +35,7 @@ def create_app(config_class=Config):
         api_secret = os.environ.get('CLOUDINARY_API_SECRET'), 
         secure = True
     )
+    login_manager.init_app(app)
 
     # Rutas que se han registrado
     from .routes.Administrador import all_blueprints as administrador_blueprints

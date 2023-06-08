@@ -5,13 +5,11 @@ from app.models import Sitio, Delegacion, FotoSitio ,Colonia, Usuario, Historial
 
 mostrar_favoritos_bp = Blueprint('mostrar_favoritos', __name__)
 
-@jwt_required()
-@mostrar_favoritos_bp.route('/mostrar_favoritos', methods=["GET"])
-def mostrar_favoritos():
-    sitios_encontrados = Sitio.query.all() # [sitios]
+@mostrar_favoritos_bp.route('/mostrar_favoritos/<str:correo_usuario>', methods=["GET"])
+def mostrar_favoritos(correo_usuario):
+    sitios_encontrados = Sitio.query.all()
     
-    identificador_usuario = get_jwt_identity()
-    usuario_encontrado: Usuario = Usuario.query.get(identificador_usuario)
+    usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
     
     datos_sitios = []
     for sitio_objeto in sitios_encontrados:

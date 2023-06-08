@@ -5,15 +5,14 @@ from app.models import Usuario, Historial
 
 agregar_favorito_bp = Blueprint('agregar_favorito', __name__)
 
-@jwt_required()
 @agregar_favorito_bp.route('/agregar_sitio_favorito', methods=["POST"])
 def agregar_sitio_favorito():
     
     data = request.get_json()
+    correo_usuario = data.get('correo_usuario')
     cve_sitio = data.get('cve_sitio')
     
-    identificador_usuario = get_jwt_identity()
-    usuario:Usuario = Usuario.query.get(identificador_usuario)
+    usuario:Usuario = Usuario.query.get(correo_usuario)
     
     if not usuario:
         return jsonify({"error": "Necesitas iniciar sesión para realizar la acción."}), 404

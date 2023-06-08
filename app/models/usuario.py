@@ -1,7 +1,8 @@
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import  UserMixin
 
-class Usuario(db.Model):
+class Usuario(db.Model, UserMixin):
     correo_usuario = db.Column(db.String(100), primary_key=True, unique=True)
     usuario = db.Column(db.String(100), nullable=False, unique=True)
     contrasena_hash  = db.Column(db.String(128))
