@@ -27,31 +27,8 @@ def ruta_modificar_sitio():
     
     obligatorios = {
         "correo_usuario": request.form["correo_usuario"],
-        "cve_sitio": int(request.form["cve_sitio"])
+        "cve_sitio": request.form["cve_sitio"]
     }
-    
-    # Opcionales #
-    nombre_sitio = request.form["nombre_sitio"]
-    longitud = float(request.form["longitud"])
-    latitud = float(request.form["latitud"])
-    cve_tipo_sitio = int(request.form["cve_tipo_sitio"]) 
-    cve_delegacion = int(request.form["cve_delegacion"])
-    colonia = request.form["colonia"]
-    
-    descripcion = request.form["descripcion"]
-    correo = request.form["correo"]
-    costo = float(request.form["costo"])
-    pagina_web = request.form["pagina_web"]
-    telefono = request.form["telefono"]
-    adscripcion = request.form["adscripcion"]
-    arreglo_etiquetas = request.form["etiquetas"]
-    arreglo_servicios = request.form["servicios"]
-    
-    if arreglo_etiquetas:
-        arreglo_etiquetas = json.loads(arreglo_etiquetas)
-        
-    if arreglo_servicios:
-        arreglo_servicios = json.loads(arreglo_servicios)
     
     for nombre, valor in obligatorios.items():
         if not valor:
@@ -67,9 +44,9 @@ def ruta_modificar_sitio():
         return jsonify({"error": "El usuario no es administrador. No puede borrar el sitio."}), 403
     
     ## VALIDACIONES ADICIONALES ##
-    
-    if Sitio.query.filter_by(nombre_sitio=nombre_sitio).first():
-        return jsonify({"error": "Ya existe un sitio con ese nombre y con la misma dirección."}), 400
+    sitio_encontrado: Sitio = Sitio.query.get(obligatorios['cve_sitio'])
+    if not sitio_encontrado:
+        return jsonify({"error": "El sitio a modificar no existe."}), 404
     
     obtener_tipo_sitio = TipoSitio.query.get(cve_tipo_sitio)
     if not obtener_tipo_sitio:
@@ -106,22 +83,26 @@ def ruta_modificar_sitio():
         cve_delegacion = int(request.form['cve_delegacion'])
     if request.form['colonia'] != '':
         colonia = request.form['colonia']
-        
+    
     if request.form['descripcion'] != '':
         descripcion = request.form['descripcion']
-        
-    return jsonify({"mensaje": "Pendiente"}), 200
-    if request.form['costo_promedio'] != '':
-        costo_promedio = float(request.form['costo_promedio'])
+    if request.form['correo'] != '':
+        correo = request.form['correo']
+    if request.form['costo'] != '':
+        costo = float(request.form['costo'])
+    if request.form['pagina_web'] != '':
+        pagina_web = request.form['pagina_web']
+    if request.form['telefono'] != '':
+        telefono = request.form['telefono']
+    if request.form['adscripcion'] != '':
+        adscripcion = request.form['adscripcion']
     if request.form['etiquetas'] != '':
-        etiquetas = json.loads(request.form['etiquetas'])
+        arreglo_etiquetas = json.loads(request.form['etiquetas'])
     if request.form['servicios'] != '':
-        servicios = json.loads(request.form['servicios'])
+        arreglo_servicios = json.loads(request.form['servicios'])
     
-    modificar_sitio(cve_sitio, nombre_sitio, x_longitud, y_latitud, direccion, 
-                    cve_tipo_sitio, cve_delegacion, colonia, 
-                    descripcion, correo_sitio, costo_promedio, pagina_web, 
-                    telefono, adscripcion, horarios, etiquetas, servicios)
+    return jsonify({"mensaje": "Todo bien"}), 200
+    
     
     return jsonify({"mensaje": "Se han modificado los datos del sitio."}), 201
     
