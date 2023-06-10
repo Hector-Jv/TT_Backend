@@ -1,24 +1,28 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Sitio, Delegacion, FotoSitio ,Colonia, Usuario, Historial
+from app.models import Sitio, Delegacion, FotoSitio ,Colonia, Usuario, SitioFavorito
 
 mostrar_favoritos_bp = Blueprint('mostrar_favoritos', __name__)
 
-@mostrar_favoritos_bp.route('/mostrar_favoritos/<string:usuario>', methods=["GET"])
-def mostrar_favoritos(usuario):
+@mostrar_favoritos_bp.route('/mostrar_favoritos/<string:correo_usuario>', methods=["GET"])
+def mostrar_favoritos(correo_usuario):
     
+    ## VALIDACIONES DE ENTRADA ## 
+    
+    usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
+    if not usuario_encontrado:
+        return jsonify({"error": "No se encontró el correo ingresado en la base de datos."}), 404
+        
     sitios_encontrados = Sitio.query.all()
-    
-    usuario_encontrado: Usuario = Usuario.query.filter_by(usuario=usuario).first()
 
     datos_sitios = []
     for sitio_objeto in sitios_encontrados:
         if sitio_objeto.habilitado == False:
             continue
-
-        historial_encontrado: Historial = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, cve_sitio=sitio_objeto.cve_sitio).first()
-
-        if historial_encontrado.me_gusta == False:
+        
+        sitiofavorito_encontrado: SitioFavorito = SitioFavorito.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, cve_sitio=sitio_objeto.cve_sitio).first()
+        
+        if not sitiofavorito_encontrado or sitiofavorito_encontrado.me_gusta == False:
             continue
 
         datos_sitio_dict = {}
