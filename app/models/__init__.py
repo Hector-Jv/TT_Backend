@@ -6,7 +6,6 @@ from .etiqueta import Etiqueta
 from .foto_comentario import FotoComentario
 from .foto_sitio import FotoSitio
 from .historial import Historial
-from .horario import Horario
 from .servicio_hotel import ServicioHotel
 from .servicio import Servicio
 from .sitio import Sitio

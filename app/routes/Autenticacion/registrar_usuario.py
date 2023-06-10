@@ -1,9 +1,8 @@
-import os, re
+import re
 from os import getcwd
 from flask import Blueprint, current_app, jsonify, request
-from flask_jwt_extended import create_access_token
 from app import db
-from app.models import Usuario, TipoUsuario
+from app.models import Usuario
 import cloudinary.uploader
 
 registrar_usuario_bp = Blueprint('Registrar usuario', __name__)
@@ -11,20 +10,27 @@ registrar_usuario_bp = Blueprint('Registrar usuario', __name__)
 @registrar_usuario_bp.route('/registro', methods=['POST'])
 def registrar_usuario():
     
-    ids_necesarios = ['correo', 'usuario', 'contrasena']
+    ## VALIDACIONES DE ENTRADA ## 
     
-    for id in ids_necesarios:
+    identificadores = ['correo', 'usuario', 'contrasena']
+    
+    for id in identificadores:
         if id not in request.form:
-            return jsonify({"error": "Hacen falta datos."}), 400
-            
-    ## DATOS ##
+            return jsonify({"error": f"El identificador {id} no se encuentra en el formulario."}), 400
+
     correo = request.form['correo']
     usuario = request.form['usuario']
     contrasena = request.form['contrasena']
     
-    ## VALIDACIONES ##
-    if not correo or not usuario or not contrasena:
-        return jsonify({"error": "Hacen falta datos."}), 400
+    obligatorios = {
+        "correo": request.form['correo'],
+        "usuario": request.form['usuario'],
+        "contrasena": request.form['contrasena']
+    }
+    
+    for nombre, valor in obligatorios.items():
+        if not valor:
+            return jsonify({"error": f"Es necesario mandar un valor valido en {nombre}."}), 400
     
     formato_correo = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     if not re.match(formato_correo, correo):
@@ -39,8 +45,7 @@ def registrar_usuario():
     
     if Usuario.query.filter_by(usuario=usuario).first():
         return jsonify({"error": "Ya existe el usuario ingresado."}), 404
-    
-    
+
     ## MANEJO DE IMAGEN ##
     if 'foto_usuario' in request.files:
         foto = request.files['foto_usuario']
@@ -65,15 +70,10 @@ def registrar_usuario():
         db.session.commit()
     except Exception as e:
         return jsonify({"mensaje": "Error al crear al usuario"}), 400
-
-    ## Se obtienen los datos del usuario ##
-    access_token = create_access_token(identity=nuevo_usuario.correo_usuario)
-    tipo_usuario: TipoUsuario = TipoUsuario.query.get(nuevo_usuario.cve_tipo_usuario)
     
     return jsonify({
-        "access_token": access_token, 
-        "usuario": nuevo_usuario.usuario, 
-        "tipo_usuario": tipo_usuario.tipo_usuario, 
+        "correo_usuario": nuevo_usuario.correo_usuario, 
+        "cve_tipo_usuario": nuevo_usuario.cve_tipo_usuario, 
         "link_imagen": link_foto
     }), 200
       

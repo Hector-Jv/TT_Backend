@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from app.models import Sitio, Horario, Usuario, TipoSitio, FotoSitio, Colonia, Delegacion, SitioEtiqueta, Etiqueta, Historial, Comentario, FotoComentario
+from app.models import Sitio, Usuario, TipoSitio, FotoSitio, Colonia, Delegacion, SitioEtiqueta, Etiqueta, Historial, Comentario, FotoComentario
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app import db
 from datetime import datetime
@@ -46,17 +46,6 @@ def mostrar_info_sitio(cve_sitio):
     sitio_dict["adscripcion"] = sitio_encontrado.adscripcion
     sitio_dict["num_calificaciones"] = sitio_encontrado.num_calificaciones
     sitio_dict["calificacion"] = sitio_encontrado.calificacion
-    
-    horarios = []
-    horarios_encontrados = Horario.query.filter_by(cve_sitio=cve_sitio).all()
-    for horario in horarios_encontrados:
-        info_horario = {}
-        info_horario["cve_horario"] = horario.cve_horario
-        info_horario["dia"] = horario.dia
-        info_horario["horario_apertura"] = str(horario.horario_apertura)
-        info_horario["horario_cierre"] = str(horario.horario_cierre)
-        horarios.append(info_horario)
-    sitio_dict["horarios"] = horarios
     
     fotos = []
     fotos_encontradas = FotoSitio.query.filter_by(cve_sitio=cve_sitio).all()

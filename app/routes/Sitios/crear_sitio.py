@@ -1,59 +1,86 @@
 import json
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Sitio, Colonia, Horario, TipoSitio, SitioEtiqueta, FotoSitio, ServicioHotel
+from app.models import Sitio, Colonia, TipoSitio, SitioEtiqueta, FotoSitio, ServicioHotel, Usuario, TipoUsuario
 import cloudinary.uploader
 
 crear_sitio_bp = Blueprint('crear_sitio', __name__)
 
 @crear_sitio_bp.route('/crear_sitio', methods=['POST'])
 def crear_sitio(): 
-    # Datos ingresados #
-    try:
-        # Modelo Sitio
-        nombre_sitio = request.form["nombre_sitio"]
-        longitud = float(request.form["longitud"])
-        latitud = float(request.form["latitud"])
-        descripcion = request.form["descripcion"]
-        correo = request.form["correo"]
-        costo = float(request.form["costo"])
-        pagina_web = request.form["pagina_web"]
-        telefono = request.form["telefono"]
-        adscripcion = request.form["adscripcion"]
-        cve_tipo_sitio = int(request.form["cve_tipo_sitio"]) 
-        cve_delegacion = int(request.form["cve_delegacion"])
-        colonia = request.form["colonia"]
-        
-        # Modelo SitioEtiqueta #
-        arreglo_etiquetas = request.form["etiquetas"]
-        
-        # Modelo ServicioHotel #
-        arreglo_servicios = request.form["servicios"]
-        
-        # Modelo Horario
-        arreglo_horario = request.form["horarios"]
-        
-    except Exception as e:
-        return jsonify({"error": f"Hubo un error al recibir los datos: {e}"}), 400
+
+    ## VALIDACIONES DE ENTRADA ## 
+
+    identificadores = ["correo_usuario", "nombre_sitio",
+                       "longitud", "latitud",
+                       "descripcion", "correo",
+                       "costo", "pagina_web",
+                       "telefono", "adscripcion",
+                       "cve_tipo_sitio", "cve_delegacion",
+                       "colonia", "etiquetas", "servicios"]
+
+    for id in identificadores:
+        if id not in request.form:
+            return jsonify({"error": f"El identificador {id} no se encuentra en el formulario."}), 400
+
+    # Obligatorios #
+    correo_usuario = request.form["correo_usuario"]
+    nombre_sitio = request.form["nombre_sitio"]
+    longitud = float(request.form["longitud"])
+    latitud = float(request.form["latitud"])
+    cve_tipo_sitio = int(request.form["cve_tipo_sitio"]) 
+    cve_delegacion = int(request.form["cve_delegacion"])
+    colonia = request.form["colonia"]
+    # Opcionales #
+    descripcion = request.form["descripcion"]
+    correo = request.form["correo"]
+    costo = float(request.form["costo"])
+    pagina_web = request.form["pagina_web"]
+    telefono = request.form["telefono"]
+    adscripcion = request.form["adscripcion"]
+    arreglo_etiquetas = request.form["etiquetas"]
+    arreglo_servicios = request.form["servicios"]
     
     if arreglo_etiquetas:
         arreglo_etiquetas = json.loads(arreglo_etiquetas)
-    if arreglo_horario:
-        arreglo_horario = json.loads(arreglo_horario)
     if arreglo_servicios:
         arreglo_servicios = json.loads(arreglo_servicios)
     
+    obligatorios = {
+        "correo_usuario": request.form["correo_usuario"],
+        "nombre_sitio": request.form["nombre_sitio"],
+        "longitud": float(request.form["longitud"]),
+        "latitud": float(request.form["latitud"]),
+        "cve_tipo_sitio": int(request.form["cve_tipo_sitio"]),
+        "cve_delegacion": int(request.form["cve_delegacion"]),
+        "colonia": request.form["colonia"]
+    }
+
+    for nombre, valor in obligatorios.items():
+        if not valor:
+            return jsonify({"error": f"Es necesario mandar un valor valido en {nombre}."}), 400
+        
+    ## VALIDACIÓN DE PERMISOS ##
     
-    # Validaciones #
+    usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
+    if not usuario_encontrado:
+        return jsonify({"error": "Es necesario ingresar con un correo registrado."}), 400
+        
+    tipo_usuario: TipoUsuario = TipoUsuario.query.get(usuario_encontrado.cve_tipo_usuario)
+    if tipo_usuario.tipo_usuario != 'Administrador':
+        return jsonify({"error": "El usuario no es administrador. No puede borrar el sitio."}), 403
+        
+    ## VALIDACIONES ADICIONALES ##
+    
     if Sitio.query.filter_by(nombre_sitio=nombre_sitio).first():
         return jsonify({"error": "Ya existe un sitio con ese nombre y con la misma dirección."}), 400
     
-    
     obtener_tipo_sitio = TipoSitio.query.get(cve_tipo_sitio)
-    obtener_colonia = Colonia.query.filter_by(nombre_colonia=colonia).first()
-    
-    
+    if not obtener_tipo_sitio:
+        return jsonify({"error": "No existe un tipo de sitio registrado con esa clave."}), 400
+        
     # Insertar colonia
+    obtener_colonia = Colonia.query.filter_by(nombre_colonia=colonia).first()
     if not obtener_colonia:
         crear_colonia = Colonia(
             colonia, 
@@ -83,18 +110,8 @@ def crear_sitio():
     db.session.add(nuevo_sitio)
     db.session.flush()
         
-    # Insertar horarios
-    for horario in arreglo_horario:
-        nuevo_horario = Horario(
-            horario["dia"],
-            horario["horaEntrada"],
-            horario["horaSalida"],
-            nuevo_sitio.cve_sitio    
-        )
-        db.session.add(nuevo_horario)
-        
     # Insertar etiquetas
-    if obtener_tipo_sitio.tipo_sitio in ["Restaurante", "Museo"] and arreglo_etiquetas:
+    if arreglo_etiquetas and obtener_tipo_sitio.tipo_sitio in ["Restaurante", "Museo"]:
         for etiqueta in arreglo_etiquetas:
             nueva_relacion = SitioEtiqueta(
                 nuevo_sitio.cve_sitio,
@@ -102,7 +119,7 @@ def crear_sitio():
             )
             db.session.add(nueva_relacion)
             
-    if obtener_tipo_sitio.tipo_sitio == "Hotel" and arreglo_servicios:
+    if arreglo_servicios and obtener_tipo_sitio.tipo_sitio == "Hotel":
         for servicio in arreglo_servicios:
             nueva_relacion = ServicioHotel(
                 nuevo_sitio.cve_sitio,

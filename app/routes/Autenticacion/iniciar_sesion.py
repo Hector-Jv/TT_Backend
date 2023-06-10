@@ -1,35 +1,50 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import create_access_token
 from app import db
 from app.models import Usuario, TipoUsuario
 
-iniciar_sesion_bp = Blueprint('Iniciar sesion', __name__)
+iniciar_sesion_bp = Blueprint('iniciar_sesion', __name__)
 
 @iniciar_sesion_bp.route('/login', methods=['POST'])
 def inicio_sesion():
     
-    ## Datos recibidos del usuario ##
-    data = request.get_json()
-    correo: str = data.get('correo')
+    ## VALIDACIONES DE ENTRADA ## 
+    
+    identificadores = ['correo_usuario', 'contrasena']
+    
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return jsonify({"error": "JSON malformado."}), 400
+    
+    for id in identificadores:
+        if id not in request.get_json():
+            return jsonify({"error": f"El identificador {id} no se encuentra en el formulario."}), 400
+    
+    correo_usuario: str = data.get('correo_usuario')
     contrasena: str = data.get('contrasena')
     
-    ## Validacion ##
-    if not correo or not contrasena:
-        return jsonify({"error": "Correo y contraseña requeridos."}), 400
+    if not correo_usuario or not isinstance(correo_usuario, str):
+        return jsonify({"error": "Es necesario mandar un valor valido en correo_usuario."}), 400
+    
+    if not contrasena or not isinstance(contrasena, str):
+        return jsonify({"error": "Es necesario mandar un valor valido en contrasena."}), 400
+    
+    ## VALIDACIÓN DE PERMISOS ##
 
-    usuario_encontrado: Usuario = Usuario.query.get(correo)
-    if usuario_encontrado is None:
+    usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
+    if not usuario_encontrado:
         return jsonify({"error": "El correo no se encuentra registrado."}), 404
     if not usuario_encontrado.verificar_contrasena(contrasena):
         return jsonify({"error": "Contraseña incorrecta"}), 401
     
-    ## Se obtienen los datos del usuario ##
-    access_token = create_access_token(identity=usuario_encontrado.correo_usuario)
+    ## SE REGRESAN LOS DATOS DEL USUARIO REGISTRADO ##
     tipo_usuario: TipoUsuario = TipoUsuario.query.get(usuario_encontrado.cve_tipo_usuario)
     
-    if tipo_usuario.tipo_usuario == 'Administrador' or tipo_usuario.tipo_usuario == 'Usuario registrado':
-        return jsonify({"access_token": access_token, "usuario": usuario_encontrado.usuario, "tipo_usuario": tipo_usuario.tipo_usuario, "link_imagen": usuario_encontrado.link_imagen}), 200
-    else:
-        return jsonify({"error": "No se pudo acceder a la cuenta."}), 403
+    return jsonify({
+        "correo_usuario": usuario_encontrado.correo_usuario, 
+        "cve_tipo_usuario": usuario_encontrado.cve_tipo_usuario,
+        "tipo_usuario": tipo_usuario.tipo_usuario,
+        "link_imagen": usuario_encontrado.link_imagen
+    }), 200
 
         
