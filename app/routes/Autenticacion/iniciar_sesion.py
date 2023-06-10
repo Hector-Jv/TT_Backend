@@ -41,7 +41,8 @@ def inicio_sesion():
     tipo_usuario: TipoUsuario = TipoUsuario.query.get(usuario_encontrado.cve_tipo_usuario)
     
     return jsonify({
-        "correo_usuario": usuario_encontrado.correo_usuario, 
+        "correo_usuario": usuario_encontrado.correo_usuario,
+        "usuario": usuario_encontrado.usuario,
         "cve_tipo_usuario": usuario_encontrado.cve_tipo_usuario,
         "tipo_usuario": tipo_usuario.tipo_usuario,
         "link_imagen": usuario_encontrado.link_imagen

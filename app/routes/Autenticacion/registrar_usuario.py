@@ -72,8 +72,10 @@ def registrar_usuario():
         return jsonify({"mensaje": "Error al crear al usuario"}), 400
     
     return jsonify({
-        "correo_usuario": nuevo_usuario.correo_usuario, 
-        "cve_tipo_usuario": nuevo_usuario.cve_tipo_usuario, 
-        "link_imagen": link_foto
+        "correo_usuario": nuevo_usuario.correo_usuario,
+        "usuario": nuevo_usuario.usuario,
+        "cve_tipo_usuario": nuevo_usuario.cve_tipo_usuario,
+        "tipo_usuario": nuevo_usuario.tipo_usuario,
+        "link_imagen": nuevo_usuario.link_imagen
     }), 200
       
