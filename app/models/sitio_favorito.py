@@ -3,6 +3,7 @@ from app import db
 class SitioFavorito(db.Model):
     correo_usuario = db.Column(db.String(100), primary_key=True)
     cve_sitio = db.Column(db.Integer, primary_key=True)
+    me_gusta = db.Column(db.Boolean, default=False)
     
     __table_args__ = (
         db.ForeignKeyConstraint(
@@ -19,4 +20,5 @@ class SitioFavorito(db.Model):
     def __init__(self, cve_sitio: int, correo_usuario: str):
         self.correo_usuario = correo_usuario
         self.cve_sitio = cve_sitio
+        self.me_gusta = True
     

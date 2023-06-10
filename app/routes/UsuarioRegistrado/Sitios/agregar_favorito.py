@@ -29,15 +29,20 @@ def agregar_sitio_favorito():
     if not cve_sitio or not isinstance(cve_sitio, int):
         return jsonify({"error": "Es necesario mandar un valor valido en cve_sitio."}), 400
     
-    
-        
     usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
     if not usuario_encontrado:
         return jsonify({"error": "Necesitas iniciar sesión para realizar la acción."}), 400
         
     sitiofavorito_encontrado: SitioFavorito = SitioFavorito.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, cve_sitio=cve_sitio).first()
     if not sitiofavorito_encontrado:
-        return jsonify({"error": "No existe un SitioFavorito asociado con ese correo y con esa clave de sitio."}), 404
+        nueva_relacion = SitioFavorito(
+            cve_sitio,
+            usuario_encontrado.correo_usuario
+            
+        )
+        db.session.add(nueva_relacion)
+        db.session.commit()
+        return jsonify({"mensaje": "Añadido a favoritos."}), 200
         
     try:
         if sitiofavorito_encontrado.me_gusta:
