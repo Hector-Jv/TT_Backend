@@ -1,11 +1,11 @@
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Usuario, SitioFavorito
+from app.models import Usuario, Historial
 
-agregar_favorito_bp = Blueprint('agregar_favorito', __name__)
+agregar_historial_bp = Blueprint('agregar_historial', __name__)
 
-@agregar_favorito_bp.route('/agregar_sitio_favorito', methods=["POST"])
-def agregar_sitio_favorito():
+@agregar_historial_bp.route('/agregar_historial', methods=["POST"])
+def agregar_historial():
     
     ## VALIDACIONES DE ENTRADA ## 
     
@@ -33,32 +33,27 @@ def agregar_sitio_favorito():
     if not usuario_encontrado:
         return jsonify({"error": "Necesitas iniciar sesión para realizar la acción."}), 400
         
-    sitiofavorito_encontrado: SitioFavorito = SitioFavorito.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, cve_sitio=cve_sitio).first()
+    sitiofavorito_encontrado: Historial = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, cve_sitio=cve_sitio).first()
     if not sitiofavorito_encontrado:
         nueva_relacion = SitioFavorito(
             cve_sitio,
             usuario_encontrado.correo_usuario
+            
         )
         db.session.add(nueva_relacion)
         db.session.commit()
-        sitios_favoritos = SitioFavorito.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, me_gusta=True).all()
-        arreglo_favoritos = [sitio.cve_sitio for sitio in sitios_favoritos]
-        return jsonify({"sitios_favoritos": arreglo_favoritos}), 200
+        return jsonify({"mensaje": "Añadido a favoritos."}), 200
         
     try:
         if sitiofavorito_encontrado.me_gusta:
             sitiofavorito_encontrado.me_gusta = False
             db.session.commit()
+            return jsonify({"mensaje": "Quitado de favoritos."}), 200
         else:
             sitiofavorito_encontrado.me_gusta = True
             db.session.commit()
+            return jsonify({"mensaje": "Añadido a favoritos."}), 200
     except Exception as e:
         db.session.callback()
         return jsonify({"error": "Hubo un error al agregar/quitar de favoritos"}), 400
-    
-    sitios_favoritos = SitioFavorito.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, me_gusta=True).all()
-    print(sitios_favoritos)
-    arreglo_favoritos = [sitio.cve_sitio for sitio in sitios_favoritos]
-    return jsonify({"sitios_favoritos": arreglo_favoritos}), 200
-    
         
