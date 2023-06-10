@@ -32,28 +32,28 @@ def agregar_historial():
     usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
     if not usuario_encontrado:
         return jsonify({"error": "Necesitas iniciar sesión para realizar la acción."}), 400
-        
-    sitiofavorito_encontrado: Historial = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, cve_sitio=cve_sitio).first()
-    if not sitiofavorito_encontrado:
-        nueva_relacion = SitioFavorito(
-            cve_sitio,
-            usuario_encontrado.correo_usuario
-            
+    
+    
+    historial_encontrado: Historial = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, cve_sitio=cve_sitio).first()
+    if not historial_encontrado:
+        nuevo_historial = Historial(
+            usuario_encontrado.correo_usuario,
+            cve_sitio
         )
-        db.session.add(nueva_relacion)
+        db.session.add(nuevo_historial)
         db.session.commit()
-        return jsonify({"mensaje": "Añadido a favoritos."}), 200
+        return jsonify({"mensaje": "Añadido a visitados."}), 200
         
     try:
-        if sitiofavorito_encontrado.me_gusta:
-            sitiofavorito_encontrado.me_gusta = False
+        if historial_encontrado.visitado:
+            historial_encontrado.visitado = False
             db.session.commit()
-            return jsonify({"mensaje": "Quitado de favoritos."}), 200
+            return jsonify({"mensaje": "Quitado de visitados."}), 200
         else:
-            sitiofavorito_encontrado.me_gusta = True
+            historial_encontrado.visitado = True
             db.session.commit()
-            return jsonify({"mensaje": "Añadido a favoritos."}), 200
+            return jsonify({"mensaje": "Añadido a visitados."}), 200
     except Exception as e:
         db.session.callback()
-        return jsonify({"error": "Hubo un error al agregar/quitar de favoritos"}), 400
+        return jsonify({"error": "Hubo un error al añadir/quitar de visitados."}), 400
         
