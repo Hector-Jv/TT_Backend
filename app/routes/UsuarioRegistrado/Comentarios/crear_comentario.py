@@ -30,10 +30,22 @@ def crear_comentario():
     historial_encontrado: Historial = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, 
                                                                 cve_sitio=obligatorios["cve_sitio"]).first()
     
+    if not historial_encontrado:
+        return jsonify({"error": "Debes indicar que ya visitaste el sitio antes de querer hacer una reseña."}), 404
+        
+    
+    comentario = None
+    calificacion = None
+    
+    if request.form['comentario']:
+        comentario = request.form['comentario']
+        
+    if request.form['calificacion']:
+        calificacion = request.form['calificacion']
+        
     try:
         nuevo_comentario = Comentario(
             comentario,
-            datetime.now(),
             historial_encontrado.cve_historial
         )
         db.session.add(nuevo_comentario)

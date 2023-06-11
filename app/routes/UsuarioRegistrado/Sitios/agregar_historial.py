@@ -48,12 +48,19 @@ def agregar_historial():
         if historial_encontrado.visitado:
             historial_encontrado.visitado = False
             db.session.commit()
-            return jsonify({"mensaje": "Quitado de visitados."}), 200
         else:
             historial_encontrado.visitado = True
             db.session.commit()
-            return jsonify({"mensaje": "Añadido a visitados."}), 200
     except Exception as e:
         db.session.callback()
         return jsonify({"error": "Hubo un error al añadir/quitar de visitados."}), 400
+    
+    """
+    arreglo con los sitios 
+    """
+    
+    sitios_favoritos = SitioFavorito.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, me_gusta=True).all()
+    print(sitios_favoritos)
+    arreglo_favoritos = [sitio.cve_sitio for sitio in sitios_favoritos]
+    return jsonify({"sitios_favoritos": arreglo_favoritos}), 200
         
