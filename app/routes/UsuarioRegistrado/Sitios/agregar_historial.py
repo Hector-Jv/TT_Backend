@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Usuario, Historial
+from app.models import Usuario, Historial, Comentario
 
 agregar_historial_bp = Blueprint('agregar_historial', __name__)
 
@@ -46,16 +46,18 @@ def agregar_historial():
         
     try:
         if historial_encontrado.visitado:
+            comentario_encontrado: Comentario = Comentario.query.filter_by(cve_historial=historial_encontrado.cve_historial).first()
+            if comentario_encontrado:
+                return jsonify({"error": "Elimina los comentarios realizados antes de indicar que no has visitado el sitio."}), 400
             historial_encontrado.visitado = False
             db.session.commit()
         else:
             historial_encontrado.visitado = True
             db.session.commit()
     except Exception as e:
-        db.session.callback()
         return jsonify({"error": "Hubo un error al añadir/quitar de visitados."}), 400
     
-    sitios_visitados = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, me_gusta=True).all()
+    sitios_visitados = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, visitado=True).all()
     arreglo_visitados = [sitio.cve_sitio for sitio in sitios_visitados]
     return jsonify({"sitios_visitados": arreglo_visitados}), 200
         

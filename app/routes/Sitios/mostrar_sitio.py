@@ -11,7 +11,6 @@ def mostrar_info_sitio(cve_sitio):
     sitio_dict = {}
     
     correo_usuario = request.args.get('correo_usuario')
-    print("Correo usuario: ", correo_usuario)
     if correo_usuario:
         usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
         if not usuario_encontrado:
