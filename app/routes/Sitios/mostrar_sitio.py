@@ -1,6 +1,5 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from app.models import Sitio, Usuario, TipoSitio, FotoSitio, Colonia, Delegacion, SitioEtiqueta, Etiqueta, Historial, Comentario, FotoComentario
-from flask_jwt_extended import get_jwt_identity, jwt_required
 from app import db
 from datetime import datetime
 
@@ -9,25 +8,33 @@ mostrar_sitio_bp = Blueprint('mostrar_sitio', __name__)
 @mostrar_sitio_bp.route('/mostrar_sitio/<int:cve_sitio>', methods=["GET"])
 def mostrar_info_sitio(cve_sitio):
     
-    # identificador_usuario = get_jwt_identity()
-    #usuario: Usuario = Usuario.query.get(identificador_usuario)
-    nom_usuario = 'Sanchez Perez'
-    usuario:Usuario = Usuario.query.filter_by(usuario=nom_usuario).first()
-    
-    historial_encontrado:Historial = Historial.query.filter_by(correo_usuario=usuario.correo_usuario, cve_sitio=cve_sitio).first()
-    
-    if historial_encontrado:
-        historial_encontrado.fecha_visita = datetime.utcnow()
-    else:
-        nuevo_historial = Historial(
-            usuario.correo_usuario,
-            cve_sitio
-            )
-        db.session.add(nuevo_historial)
-    db.session.commit()
-    
-    
     sitio_dict = {}
+    
+    correo_usuario = request.args.get('correo_usuario')
+    print("Correo usuario: ", correo_usuario)
+    if correo_usuario:
+        usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
+        if not usuario_encontrado:
+            return jsonify({"error": "No se encontró un usuario registrado con ese correo."}), 400
+        
+        historial_encontrado: Historial = Historial.query.filter_by(
+            correo_usuario=correo_usuario, 
+            cve_sitio=cve_sitio
+            ).first()
+        
+        if historial_encontrado:
+            historial_encontrado.fecha_visita = datetime.utcnow()
+        else:
+            nuevo_historial = Historial(
+                correo_usuario,
+                cve_sitio
+                )
+            db.session.add(nuevo_historial)
+            historial_encontrado = nuevo_historial
+        db.session.commit()
+        sitio_dict["visitado"] = historial_encontrado.visitado
+    
+    
     
     sitio_encontrado: Sitio = Sitio.query.get(cve_sitio)
     

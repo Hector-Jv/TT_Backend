@@ -12,6 +12,6 @@ class Historial(db.Model):
     def __init__(self, correo_usuario: str, cve_sitio: int):
         self.correo_usuario = correo_usuario
         self.cve_sitio = cve_sitio
-        self.visitado = True
+        self.visitado = False
         self.fecha_visita = datetime.utcnow()
         
