@@ -34,7 +34,6 @@ def mostrar_info_sitio(cve_sitio):
         sitio_dict["visitado"] = historial_encontrado.visitado
     
     
-    
     sitio_encontrado: Sitio = Sitio.query.get(cve_sitio)
     
     if not sitio_encontrado:
