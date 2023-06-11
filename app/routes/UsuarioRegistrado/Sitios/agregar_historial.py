@@ -33,7 +33,7 @@ def agregar_historial():
     if not usuario_encontrado:
         return jsonify({"error": "Necesitas iniciar sesión para realizar la acción."}), 400
     
-    
+    mensaje = ""
     historial_encontrado: Historial = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, cve_sitio=cve_sitio).first()
     if not historial_encontrado:
         nuevo_historial = Historial(
@@ -42,7 +42,10 @@ def agregar_historial():
         )
         db.session.add(nuevo_historial)
         db.session.commit()
-        return jsonify({"mensaje": "Añadido a visitados."}), 200
+        mensaje = "Añadido a visitados."
+        sitios_visitados = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, visitado=True).all()
+        arreglo_visitados = [sitio.cve_sitio for sitio in sitios_visitados]
+        return jsonify({"sitios_visitados": arreglo_visitados, "sitio_modificado": cve_sitio, "mensaje": mensaje}), 200
         
     try:
         if historial_encontrado.visitado:
@@ -51,13 +54,17 @@ def agregar_historial():
                 return jsonify({"error": "Elimina los comentarios realizados antes de indicar que no has visitado el sitio."}), 400
             historial_encontrado.visitado = False
             db.session.commit()
+            mensaje = "Quitado de visitados."
+            
         else:
             historial_encontrado.visitado = True
             db.session.commit()
+            mensaje = "Añadido de visitados."
+            
     except Exception as e:
         return jsonify({"error": "Hubo un error al añadir/quitar de visitados."}), 400
     
     sitios_visitados = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, visitado=True).all()
     arreglo_visitados = [sitio.cve_sitio for sitio in sitios_visitados]
-    return jsonify({"sitios_visitados": arreglo_visitados}), 200
+    return jsonify({"sitios_visitados": arreglo_visitados, "sitio_modificado": cve_sitio, "mensaje": mensaje}), 200
         
