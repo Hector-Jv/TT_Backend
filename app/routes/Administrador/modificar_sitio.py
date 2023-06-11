@@ -48,7 +48,7 @@ def ruta_modificar_sitio():
     if not sitio_encontrado:
         return jsonify({"error": "El sitio a modificar no existe."}), 404
     
-    obtener_tipo_sitio = TipoSitio.query.get(cve_tipo_sitio)
+    obtener_tipo_sitio = TipoSitio.query.get(request.form["cve_tipo_sitio"])
     if not obtener_tipo_sitio:
         return jsonify({"error": "No existe un tipo de sitio registrado con esa clave."}), 400
 
@@ -100,6 +100,9 @@ def ruta_modificar_sitio():
         arreglo_etiquetas = json.loads(request.form['etiquetas'])
     if request.form['servicios'] != '':
         arreglo_servicios = json.loads(request.form['servicios'])
+    
+    print(arreglo_etiquetas)
+    print(arreglo_servicios)
     
     return jsonify({"mensaje": "Todo bien"}), 200
     

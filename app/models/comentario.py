@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from app import db
 
 class Comentario(db.Model):
@@ -7,8 +7,8 @@ class Comentario(db.Model):
     fecha_comentario = db.Column(db.DateTime, nullable=False)
     cve_historial = db.Column(db.Integer, db.ForeignKey('historial.cve_historial'), nullable=False)
  
-    def __init__(self, comentario: str, fecha_comentario: datetime, cve_historial: int):
+    def __init__(self, comentario: str, cve_historial: int):
         self.comentario = comentario
-        self.fecha_comentario = fecha_comentario
         self.cve_historial = cve_historial
+        self.fecha_comentario = datetime.now()
     
