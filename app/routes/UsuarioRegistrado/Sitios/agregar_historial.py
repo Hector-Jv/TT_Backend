@@ -134,15 +134,13 @@ def agregar_historial():
             comentarios.append(comentario)
     sitio_dict["comentarios"] = comentarios
     
-    dict_usuario = {}
     historial_usuario: Historial = Historial.query.filter_by(correo_usuario=correo_usuario, cve_sitio=cve_sitio).first()
-    dict_usuario["cve_historial"] = historial_usuario.cve_historial
-    dict_usuario["visitado"] = historial_usuario.visitado
-    dict_usuario["fecha_visita"] = historial_usuario.fecha_visita
-    dict_usuario["cve_sitio_modificado"] = cve_sitio
+    sitio_dict["visitado"] = historial_usuario.visitado
+    sitio_dict["fecha_visita"] = historial_usuario.fecha_visita
+    
     """
     sitios_visitados = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, visitado=True).all()
     arreglo_visitados = [sitio.cve_sitio for sitio in sitios_visitados]
     """
-    return jsonify({"datos_sitio": sitio_dict, "cambios": dict_usuario, "mensaje": mensaje}), 200
+    return jsonify({"datos_sitio": sitio_dict, "cve_sitio": cve_sitio, "mensaje": mensaje}), 200
         
