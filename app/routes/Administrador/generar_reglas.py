@@ -59,8 +59,9 @@ def generar_reglas():
     soporte_minimo = 2
     
     historiales_encontrados = Historial.query.all()
-    arreglo_historiales = [(historial.correo_usuario, historial.cve_sitio) for historial in historiales_encontrados]
+    arreglo_historiales = [(historial.correo_usuario, historial.cve_sitio) for historial in historiales_encontrados if historial.visitado]
     print(arreglo_historiales)
+    
     arreglo_filtrado = []
     for historial in arreglo_historiales:
         sitio_encontrado: Sitio = Sitio.query.get(historial[1])

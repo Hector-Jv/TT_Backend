@@ -101,9 +101,6 @@ def ruta_modificar_sitio():
     if request.form['servicios'] != '':
         arreglo_servicios = json.loads(request.form['servicios'])
     
-    print(arreglo_etiquetas)
-    print(arreglo_servicios)
-    
     return jsonify({"mensaje": "Todo bien"}), 200
     
     

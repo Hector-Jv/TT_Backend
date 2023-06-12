@@ -1,46 +1,89 @@
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Historial, Usuario
+from app.models import Historial, Usuario, TipoSitio, Sitio, FotoSitio, Colonia, Delegacion
 import json
 
-mostrar_recomendaciones_bp = Blueprint('Mostrar recomendaciones', __name__)
+mostrar_recomendaciones_bp = Blueprint('mostrar_recomendaciones', __name__)
 
 @mostrar_recomendaciones_bp.route('/mostrar_recomendaciones/<string:correo_usuario>', methods=["GET"])
-def mostrar_sitios_favoritos(correo_usuario):
+def mostrar_recomendaciones(correo_usuario):
     
-    try: 
-        # Datos necesarios ##
-        # Token de usuario
-        # json con la clave de sitio
+    ## VALIDACIONES DE ENTRADA ## 
+    
+    if not correo_usuario or not isinstance(correo_usuario, str):
+        return jsonify({"error": "Es necesario mandar un valor valido en correo_usuario."}), 400
         
-        usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
-        
-        print("Usuario: ", usuario_encontrado.correo_usuario)
-        
-        historiales_encontrados = Historial.query.filter_by(cve_usuario = usuario_encontrado.correo_usuario).all()
-        historiales_de_usuario = sorted([historial.cve_sitio for historial in historiales_encontrados])
-        
-        if len(historiales_de_usuario) < 2:
-            return jsonify({"mensaje": "No hay suficientes datos para generar recomendaciones."}), 400
+    usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
+    if not usuario_encontrado:
+        return jsonify({"error": "Es necesario ingresar un correo registrado."}), 400
 
-        with open('app/data/reglas_asociacion.json', 'r') as f:
-            reglas_asociacion = json.load(f)
-                
-        print("Historiales de usuario: ", historiales_de_usuario)
+    sitios_encontrados = Sitio.query.all() # [sitios]
+    
+    datos_sitios = []
+    for sitio_objeto in sitios_encontrados:
+        if sitio_objeto.habilitado == False:
+            continue
         
+        historial_encontrado: Historial = Historial.query.filter_by(cve_sitio=sitio_objeto.cve_sitio, correo_usuario=correo_usuario).first()
+        if not historial_encontrado:
+            continue
         
-        sitios_recomendados = []
-        for regla in reglas_asociacion:
-            cumple = True
-            for elemento in regla["antecedente"]:
-                if not elemento in historiales_de_usuario:
-                    cumple = False
-                    break
-            if cumple:
-                sitios_recomendados.append(regla["consecuente"])
-                
+        if not historial_encontrado.visitado:
+            continue
+        
+        datos_sitio_dict = {}
+        datos_sitio_dict["cve_historial"] = historial_encontrado.cve_historial
+        datos_sitio_dict["cve_sitio"] = sitio_objeto.cve_sitio
+        datos_sitio_dict["nombre_sitio"] = sitio_objeto.nombre_sitio
+        datos_sitio_dict["costo_promedio"] = sitio_objeto.costo_promedio
+        datos_sitio_dict["cve_tipo_sitio"] = sitio_objeto.cve_tipo_sitio
+        
+        arr_imagenes = []
+        fotos_encontradas = FotoSitio.query.filter_by(cve_sitio=sitio_objeto.cve_sitio).all() # []
+        if fotos_encontradas:
+            for foto_objeto in fotos_encontradas:
+                dict_foto = {}
+                dict_foto["cve_foto_sitio"] = foto_objeto.cve_foto_sitio
+                dict_foto["link_imagen"] = foto_objeto.link_imagen
+                arr_imagenes.append(dict_foto)
+        datos_sitio_dict["imagenes"] = arr_imagenes
+        clave_delegacion = Colonia.query.filter_by(cve_colonia=sitio_objeto.cve_colonia).first().cve_delegacion
+        datos_sitio_dict["delegacion"] = Delegacion.query.get(clave_delegacion).nombre_delegacion
+        datos_sitio_dict["calificacion"] = sitio_objeto.calificacion
+        
+        datos_sitios.append(datos_sitio_dict)
+    
+    cve_sitios = [sitio["cve_sitio"]  for sitio in datos_sitios]
+
+    with open('app/data/reglas_asociacion_Museo.json', 'r') as f:
+        reglas_asociacion = json.load(f)
+    
+    sitios_recomendados = []
+    for regla in reglas_asociacion:
+        cumple = True
+        for elemento in regla["antecedente"]:
+            if not elemento in cve_sitios:
+                cumple = False
+                break
+        if cumple:
+            dict_provisional = {}
+            dict_provisional["antecedente"] = regla["antecedente"] 
+            dict_provisional["consecuente"] = regla["consecuente"]
+            dict_provisional["cve_tipo_sitio"] = 1
+            sitios_recomendados.append(dict_provisional)
+    
+    
+    cve_sitios_recomendados_sin_repeticiones = set()
+    
+    for sitio_recomendado in sitios_recomendados:
+        for sitio in sitio_recomendado["consecuente"]:
+            cve_sitios_recomendados_sin_repeticiones.add(sitio)
             
-        
-        return jsonify({"mensaje": "en construccion"}), 200
-    except Exception as e:
-        print("Error: ", e)
+    lista_sitios_recomendados = [sitio for sitio in datos_sitios if sitio["cve_sitio"] in cve_sitios_recomendados_sin_repeticiones]
+    
+    print("Claves de los sitios: ", cve_sitios)
+    print("Sitios recomendados: ", sitios_recomendados)
+    
+    return jsonify(lista_sitios_recomendados), 200
+    
+    # return jsonify({"claves_sitios": cve_sitios, "sitios_recomendados": sitios_recomendados}), 200

@@ -138,9 +138,5 @@ def agregar_historial():
     sitio_dict["visitado"] = historial_usuario.visitado
     sitio_dict["fecha_visita"] = historial_usuario.fecha_visita
     
-    """
-    sitios_visitados = Historial.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario, visitado=True).all()
-    arreglo_visitados = [sitio.cve_sitio for sitio in sitios_visitados]
-    """
     return jsonify({"datos_sitio": sitio_dict, "cve_sitio": cve_sitio, "mensaje": mensaje}), 200
         
