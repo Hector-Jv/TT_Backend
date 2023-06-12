@@ -4,6 +4,11 @@ from app.models import Usuario, Historial, Comentario, FotoSitio, Sitio, SitioEt
 
 agregar_historial_bp = Blueprint('agregar_historial', __name__)
 
+@agregar_historial_bp.route('/prueba', methods=["GET"])
+def prueba():
+    
+    return jsonify({"Hola"}),200
+
 @agregar_historial_bp.route('/agregar_historial', methods=["POST"])
 def agregar_historial():
     
