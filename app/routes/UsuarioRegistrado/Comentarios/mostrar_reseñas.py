@@ -14,15 +14,19 @@ def mostrar_reseñas(correo_usuario):
     if not usuario_encontrado:
         return jsonify({"error": "No se encontró una cuenta asociada con ese correo."}), 404
     
-    reseñas_usuario = []
     historiales = Historial.query.filter_by(correo_usuario = correo_usuario).all()
+    if not historiales:
+        return jsonify([]), 200
+    
+    reseñas_usuario = []
     for historial in historiales:
         sitio_reseña = {}
-        sitio_reseña["comentario"] = comentario_encontrado.comentario
-        sitio_reseña["calificacion"] = comentario_encontrado.calificacion
         comentario_encontrado: Comentario = Comentario.query.filter_by(cve_historial=historial.cve_historial).first()
         if not comentario_encontrado:
             continue
+        sitio_reseña["cve_sitio"] = historial.cve_sitio
+        sitio_reseña["comentario"] = comentario_encontrado.comentario
+        sitio_reseña["calificacion"] = comentario_encontrado.calificacion
         fotos_encontradas = FotoComentario.query.filter_by(cve_comentario=comentario_encontrado.cve_comentario).all()
         fotos = []
         if fotos_encontradas:

@@ -40,6 +40,11 @@ def eliminar_comentario():
     if not comentario_encontrado:
         return jsonify({"error": "No se encontró comentario del sitio."}), 404
     
-    fotos_encontradas = Foto
+    fotos_encontradas = FotoComentario.query.filter_by(cve_comentario=comentario_encontrado.cve_comentario).all()
+    if fotos_encontradas:
+        for foto in fotos_encontradas:
+            db.session.delete(foto)
     
-    return jsonify({"mensaje": "Por terminar"}), 200
+    db.session.delete(comentario_encontrado)
+        
+    return jsonify({"mensaje": "Se ha eliminado el comentario correctamente."}), 200
