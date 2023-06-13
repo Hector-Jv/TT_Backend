@@ -42,7 +42,7 @@ def crear_comentario():
     print("Comentario: ", comentario)
     if request.form['calificacion']:
         cambio = True
-        calificacion = request.form['calificacion']
+        calificacion = int(request.form['calificacion'])
         if calificacion < 1 or calificacion > 5:
             return jsonify({"error": "La calificación debe estar entre el rango 1 a 5."}), 400
     print("Calificacion: ", calificacion) 
