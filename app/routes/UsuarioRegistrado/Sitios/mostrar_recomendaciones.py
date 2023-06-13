@@ -50,40 +50,42 @@ def mostrar_recomendaciones(correo_usuario):
         clave_delegacion = Colonia.query.filter_by(cve_colonia=sitio_objeto.cve_colonia).first().cve_delegacion
         datos_sitio_dict["delegacion"] = Delegacion.query.get(clave_delegacion).nombre_delegacion
         datos_sitio_dict["calificacion"] = sitio_objeto.calificacion
-        
+        print("cve_sitio obtenido: ", datos_sitio_dict["cve_sitio"])
         datos_sitios.append(datos_sitio_dict)
     
     cve_sitios = [sitio["cve_sitio"]  for sitio in datos_sitios]
-
+    print(cve_sitios)
     with open('app/data/reglas_asociacion_Museo.json', 'r') as f:
         reglas_asociacion = json.load(f)
     
     sitios_recomendados = []
     for regla in reglas_asociacion:
+        print(regla)
         cumple = True
         for elemento in regla["antecedente"]:
             if not elemento in cve_sitios:
                 cumple = False
                 break
         if cumple:
+            print(regla)
             dict_provisional = {}
             dict_provisional["antecedente"] = regla["antecedente"] 
             dict_provisional["consecuente"] = regla["consecuente"]
             dict_provisional["cve_tipo_sitio"] = 1
             sitios_recomendados.append(dict_provisional)
+
     
-    
-    cve_sitios_recomendados_sin_repeticiones = set()
-    
+    cve_sitios_recomendados_sin_repeticiones = set()    
     for sitio_recomendado in sitios_recomendados:
         for sitio in sitio_recomendado["consecuente"]:
             cve_sitios_recomendados_sin_repeticiones.add(sitio)
-            
-    lista_sitios_recomendados = [sitio for sitio in datos_sitios if sitio["cve_sitio"] in cve_sitios_recomendados_sin_repeticiones]
+          
     
-    print("Claves de los sitios: ", cve_sitios)
-    print("Sitios recomendados: ", sitios_recomendados)
+    lista_sitios_recomendados = []
+    for sitio in datos_sitios:
+        if sitio["cve_sitio"] in cve_sitios_recomendados_sin_repeticiones:
+            lista_sitios_recomendados.append(sitio)
+    
     
     return jsonify(lista_sitios_recomendados), 200
-    
-    # return jsonify({"claves_sitios": cve_sitios, "sitios_recomendados": sitios_recomendados}), 200
+

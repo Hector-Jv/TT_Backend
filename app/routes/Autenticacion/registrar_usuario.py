@@ -47,6 +47,7 @@ def registrar_usuario():
         return jsonify({"error": "Ya existe el usuario ingresado."}), 404
 
     ## MANEJO DE IMAGEN ##
+    link_foto = None
     if 'foto_usuario' in request.files:
         foto = request.files['foto_usuario']
         if foto.filename != '':
@@ -58,7 +59,7 @@ def registrar_usuario():
             # SE SUBE LA IMAGEN #
             upload_result = cloudinary.uploader.upload(foto)
             link_foto = upload_result['secure_url']
-            
+    
     try:
         nuevo_usuario = Usuario(
             correo_usuario = correo,
@@ -75,7 +76,6 @@ def registrar_usuario():
         "correo_usuario": nuevo_usuario.correo_usuario,
         "usuario": nuevo_usuario.usuario,
         "cve_tipo_usuario": nuevo_usuario.cve_tipo_usuario,
-        "tipo_usuario": nuevo_usuario.tipo_usuario,
         "link_imagen": nuevo_usuario.link_imagen
     }), 200
       

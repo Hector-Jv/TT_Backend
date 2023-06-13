@@ -1,16 +1,14 @@
 from flask import Blueprint, jsonify, request
 from app import db
-from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.models import Usuario, Historial, Comentario
 
 modificar_comentario_bp = Blueprint('modificar_comentario', __name__)
 
 @modificar_comentario_bp.route('/modificar_comentario', methods=["UPDATE"])
-@jwt_required()
 def modificar_comentario():
     
-    identificador_usuario = get_jwt_identity()
-    usuario: Usuario = Usuario.query.get(identificador_usuario)
+    data = request.get_data()
+    usuario: Usuario = Usuario.query.get(data.get("correo_usuario"))
     
     if not usuario:
         return jsonify({"error": "Necesitas iniciar sesión para realizar la acción."}), 404
