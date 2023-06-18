@@ -18,6 +18,7 @@ def mostrar_sitios():
         datos_sitio_dict["nombre_sitio"] = sitio_objeto.nombre_sitio
         datos_sitio_dict["costo_promedio"] = sitio_objeto.costo_promedio
         datos_sitio_dict["cve_tipo_sitio"] = sitio_objeto.cve_tipo_sitio
+        datos_sitio_dict["habilitado"] = sitio_objeto.habilitado
         
         arr_imagenes = []
         fotos_encontradas = FotoSitio.query.filter_by(cve_sitio=sitio_objeto.cve_sitio).all() # []

@@ -6,21 +6,37 @@ from app.models import Usuario, Historial, Comentario
 
 eliminar_cuenta_bp = Blueprint('eliminar_cuenta', __name__)
 
-@eliminar_cuenta_bp.route('/eliminar_cuenta', methods=["POST"])
-@jwt_required()
+@eliminar_cuenta_bp.route('/eliminar_cuenta', methods=["DELETE"])
 def eliminar_cuenta():
     
-    identificador_usuario = get_jwt_identity()
-    usuario: Usuario = Usuario.query.get(identificador_usuario)
+    ## VALIDACIONES DE ENTRADA ## 
     
-    if not usuario:
+    identificadores = ['correo_usuario', 'contrasena']
+    
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return jsonify({"error": "JSON malformado."}), 400
+    
+    for id in identificadores:
+        if id not in request.get_json():
+            return jsonify({"error": f"El identificador {id} no se encuentra en el formulario."}), 400
+    
+    correo_usuario = data.get('correo_usuario')
+    contrasena = data.get('contrasena')
+    
+    if not correo_usuario or not isinstance(correo_usuario, str):
+        return jsonify({"error": "Es necesario mandar un valor valido en correo_usuario."}), 400
+    
+    if not contrasena or not isinstance(contrasena, str):
+        return jsonify({"error": "Es necesario mandar un valor valido en contrasena."}), 400
+    
+    
+    usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
+    if not usuario_encontrado:
         return jsonify({"error": "Necesitas iniciar sesión para realizar la acción."}), 404
     
+    if not usuario_encontrado.verificar_contrasena(contrasena):
+        return jsonify({"error": "Contraseña incorrecta."}), 400
     
-    ###############
-    """
-    POR TERMINAR
-    """
-    ###############
-    
-    return jsonify({"mensaje": "Por terminar"}), 200
+    return jsonify({"mensaje": "todo bien"}), 200
