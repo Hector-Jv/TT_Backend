@@ -41,6 +41,7 @@ def mostrar_info_sitio(cve_sitio):
     
     sitio_dict["cve_sitio"] = cve_sitio
     sitio_dict["nombre_sitio"] = sitio_encontrado.nombre_sitio
+    sitio_dict["habilitado"] = sitio_encontrado.habilitado
     sitio_dict["longitud"] = sitio_encontrado.longitud
     sitio_dict["latitud"] = sitio_encontrado.latitud
     sitio_dict["descripcion"] = sitio_encontrado.descripcion
