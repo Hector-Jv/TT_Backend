@@ -10,6 +10,7 @@ def mostrar_info_sitio(cve_sitio):
     
     sitio_dict = {}
     
+    ## USUARIO REGISTRADO ##
     correo_usuario = request.args.get('correo_usuario')
     if correo_usuario:
         usuario_encontrado: Usuario = Usuario.query.get(correo_usuario)
@@ -34,8 +35,8 @@ def mostrar_info_sitio(cve_sitio):
         sitio_dict["visitado"] = historial_encontrado.visitado
     
     
+    ## INFORMACION DEL SITIO ##
     sitio_encontrado: Sitio = Sitio.query.get(cve_sitio)
-    
     if not sitio_encontrado:
         return jsonify({"error": "No existe el sitio."}), 400
     
@@ -87,6 +88,9 @@ def mostrar_info_sitio(cve_sitio):
         comentario = {}
         comentario_encontrado: Comentario = Comentario.query.filter_by(cve_historial=historial.cve_historial).first()
         if comentario_encontrado:
+            usuario_de_comentario: Usuario = Usuario.query.get(historial.correo_usuario)
+            comentario["usuario"] = usuario_de_comentario.usuario
+            
             fotos_comentarios = FotoComentario.query.filter_by(cve_comentario=comentario_encontrado.cve_comentario).all()
             fotosC = []
             for fotoC in fotos_comentarios:
