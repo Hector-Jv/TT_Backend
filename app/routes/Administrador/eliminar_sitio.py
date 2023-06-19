@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Sitio, Usuario,TipoUsuario, ServicioHotel, SitioEtiqueta, FotoSitio, Historial, Comentario, FotoComentario
+from app.models import Sitio, Usuario,TipoUsuario, ServicioHotel, SitioEtiqueta, FotoSitio, Historial, Comentario, FotoComentario, SitioFavorito
 
 eliminar_sitio_bp = Blueprint('eliminar_sitio', __name__)
 
@@ -80,6 +80,13 @@ def eliminar_sitio():
         if servicios_encontrados:
             for servicio in servicios_encontrados:
                 db.session.delete(servicio)
+                
+        ## SitioFavorito ##
+        sitios_favoritos = SitioFavorito.query.filter_by(cve_sitio = cve_sitio).all()
+        if sitios_favoritos:
+            for sitio in sitios_favoritos:
+                db.session.delete(sitio)
+        
         db.session.delete(sitio_encontrado)
     except Exception as e:
         db.session.rollback()

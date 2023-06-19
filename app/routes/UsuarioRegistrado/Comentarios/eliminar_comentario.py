@@ -44,7 +44,10 @@ def eliminar_comentario():
     if fotos_encontradas:
         for foto in fotos_encontradas:
             db.session.delete(foto)
+    db.session.flush()
     
     db.session.delete(comentario_encontrado)
+    db.session.commit()
+    
         
     return jsonify({"mensaje": "Se ha eliminado el comentario correctamente."}), 200
