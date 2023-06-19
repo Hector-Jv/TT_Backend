@@ -90,7 +90,6 @@ def mostrar_info_sitio(cve_sitio):
         if comentario_encontrado:
             usuario_de_comentario: Usuario = Usuario.query.get(historial.correo_usuario)
             comentario["usuario"] = usuario_de_comentario.usuario
-            
             fotos_comentarios = FotoComentario.query.filter_by(cve_comentario=comentario_encontrado.cve_comentario).all()
             fotosC = []
             for fotoC in fotos_comentarios:

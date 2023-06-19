@@ -115,7 +115,7 @@ def crear_sitio():
         for etiqueta in arreglo_etiquetas:
             nueva_relacion = SitioEtiqueta(
                 nuevo_sitio.cve_sitio,
-                etiqueta["cve_etiqueta"]
+                etiqueta["value"]
             )
             db.session.add(nueva_relacion)
             
