@@ -1,17 +1,17 @@
 from flask import Blueprint, jsonify, request
 from app.system_recomendations.apriori import Apriori
 from itertools import groupby
-from app.models import Historial, TipoUsuario, Usuario, TipoSitio, Sitio
+from app.models import Historial, TipoUsuario, Usuario, Sitio
 import json
 
-generar_reglas_bp = Blueprint('Generar reglas asociacion', __name__)
+generar_reglas_bp = Blueprint('generar_reglas', __name__)
 
 @generar_reglas_bp.route('/generar_reglas', methods=['POST'])
 def generar_reglas():
     
     ## VALIDACIONES DE ENTRADA ## 
     
-    identificadores = ["correo_usuario", "cve_tipo_sitio", "confianza"]
+    identificadores = ["correo_usuario"]
     
     try:
         data = request.get_json()
@@ -22,24 +22,10 @@ def generar_reglas():
         if id not in request.get_json():
             return jsonify({"error": f"El identificador {id} no se encuentra en el formulario."}), 400
 
-
     correo_usuario = data.get("correo_usuario")
-    cve_tipo_sitio = data.get("cve_tipo_sitio")
-    confianza = data.get("confianza")
     
     if not correo_usuario or not isinstance(correo_usuario, str):
         return jsonify({"error": "Es necesario mandar un valor valido en correo_usuario."}), 400
-    
-    if not cve_tipo_sitio or not isinstance(cve_tipo_sitio, int):
-        return jsonify({"error": "Es necesario mandar un valor valido en cve_tipo_sitio."}), 400
-    
-    if not confianza or not isinstance(confianza, int):
-        return jsonify({"error": "Es necesario mandar un valor valido en confianza."}), 400
-    
-    if confianza > 100 or confianza < 20:
-        return jsonify({"error": "Se debe ingresar un valor válido en el campo de confianza. (20 a 100)"}), 400
-    
-    confianza = float(confianza / 100)
     
     ## VALIDACIÓN DE PERMISOS ##
     
@@ -51,33 +37,108 @@ def generar_reglas():
     if tipo_usuario.tipo_usuario != 'Administrador':
         return jsonify({"error": "El usuario no es administrador. No puede borrar el sitio."}), 403
     
-    ## VALIDACION TIPO DE SITIO ##
-    tipositio_encontrado = TipoSitio.query.get(cve_tipo_sitio)
-    if not tipositio_encontrado:
-        return jsonify({"error": "No existe el tipo sitio ingresado."}), 400
+    
+    ### GENERACION DE REGLAS DE ASOCIACION ###
     
     soporte_minimo = 2
+    confianza = 0.80
     
     historiales_encontrados = Historial.query.all()
     arreglo_historiales = [(historial.correo_usuario, historial.cve_sitio) for historial in historiales_encontrados if historial.visitado]
     print(arreglo_historiales)
     
-    arreglo_filtrado = []
+    
+    sitios_filtrados = {
+        "museos": [],
+        "hoteles": [],
+        "parques": [],
+        "restaurantes": [],
+        "teatros": [],
+        "monumentos": []
+    }
     for historial in arreglo_historiales:
         sitio_encontrado: Sitio = Sitio.query.get(historial[1])
-        if sitio_encontrado.cve_tipo_sitio == cve_tipo_sitio and sitio_encontrado.habilitado:
-            arreglo_filtrado.append(historial)
+        if not sitio_encontrado.habilitado:
+            continue
+        
+        if sitio_encontrado.cve_tipo_sitio == 1:
+            sitios_filtrados["museos"].append(historial)
+        elif sitio_encontrado.cve_tipo_sitio == 5:
+            sitios_filtrados["hoteles"].append(historial)
+        elif sitio_encontrado.cve_tipo_sitio == 4:
+            sitios_filtrados["parques"].append(historial)
+        elif sitio_encontrado.cve_tipo_sitio == 6:
+            sitios_filtrados["restaurantes"].append(historial)
+        elif sitio_encontrado.cve_tipo_sitio == 2:
+            sitios_filtrados["teatros"].append(historial)
+        elif sitio_encontrado.cve_tipo_sitio == 3:
+            sitios_filtrados["monumentos"].append(historial)
+            
     
-    # Se ordena por correo electronico
-    arreglo_filtrado.sort(key=lambda x: x[0])
+    # Se ordenan
+    sitios_filtrados["hoteles"].sort(key=lambda x: x[0])
+    sitios_filtrados["museos"].sort(key=lambda x: x[0])
+    sitios_filtrados["parques"].sort(key=lambda x: x[0])
+    sitios_filtrados["restaurantes"].sort(key=lambda x: x[0])
+    sitios_filtrados["teatros"].sort(key=lambda x: x[0])
+    sitios_filtrados["monumentos"].sort(key=lambda x: x[0])
     
-    # Se agrupan por correo electrónico
-    historial_usuarios = [list(map(lambda x: x[1], grupo)) for clave, grupo in groupby(arreglo_filtrado, lambda x: x[0])]
+    # Se agrupan por correo
+    agrupacion_sitio = {
+        "museos": [],
+        "hoteles": [],
+        "parques": [],
+        "restaurantes": [],
+        "teatros": [],
+        "monumentos": []
+    }
     
+    agrupacion_sitio["museos"] = [list(map(lambda x: x[1], grupo)) for clave, grupo in groupby(sitios_filtrados["museos"], lambda x: x[0])]
+    agrupacion_sitio["hoteles"] = [list(map(lambda x: x[1], grupo)) for clave, grupo in groupby(sitios_filtrados["hoteles"], lambda x: x[0])]
+    agrupacion_sitio["parques"] = [list(map(lambda x: x[1], grupo)) for clave, grupo in groupby(sitios_filtrados["parques"], lambda x: x[0])]
+    agrupacion_sitio["restaurantes"] = [list(map(lambda x: x[1], grupo)) for clave, grupo in groupby(sitios_filtrados["restaurantes"], lambda x: x[0])]
+    agrupacion_sitio["teatros"] = [list(map(lambda x: x[1], grupo)) for clave, grupo in groupby(sitios_filtrados["teatros"], lambda x: x[0])]
+    agrupacion_sitio["monumentos"] = [list(map(lambda x: x[1], grupo)) for clave, grupo in groupby(sitios_filtrados["monumentos"], lambda x: x[0])]
     
-    sistema_recomendacion = Apriori(historial_usuarios, soporte_minimo, confianza)
-    reglas = sistema_recomendacion.iniciar_algoritmo()
+    sistemas_recomendacion = {
+        "museos": Apriori(agrupacion_sitio["museos"], soporte_minimo, confianza),
+        "hoteles": Apriori(agrupacion_sitio["hoteles"], soporte_minimo, confianza),
+        "parques": Apriori(agrupacion_sitio["parques"], soporte_minimo, confianza),
+        "restaurantes": Apriori(agrupacion_sitio["restaurantes"], soporte_minimo, confianza),
+        "teatros": Apriori(agrupacion_sitio["teatros"], soporte_minimo, confianza),
+        "monumentos": Apriori(agrupacion_sitio["monumentos"], soporte_minimo, confianza),
+    }
+
+    import concurrent.futures
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_to_recomendacion = {executor.submit(recomendacion.iniciar_algoritmo): recomendacion for recomendacion in sistemas_recomendacion.values()}
+        for future in concurrent.futures.as_completed(future_to_recomendacion):
+            tipo_sitio = list(sistemas_recomendacion.keys())[list(sistemas_recomendacion.values()).index(future_to_recomendacion[future])]
+            reglas = future.result()
+            with open(f'app/data/reglas_asociacion_{tipo_sitio}.json', 'w') as f:
+                json.dump(reglas, f)
     
-    with open(f'app/data/reglas_asociacion_{tipositio_encontrado.tipo_sitio}.json', 'w') as f:
-        json.dump(reglas, f)
-    return jsonify({"mensaje": f"Se han generado las reglas de asociación para los sitios de tipo {tipositio_encontrado.tipo_sitio} con exito."}), 200
+    """
+    reglas_museos = sistema_recomendacion_museos.iniciar_algoritmo()
+    reglas_hoteles = sistema_recomendacion_hoteles.iniciar_algoritmo()
+    reglas_parques = sistema_recomendacion_parques.iniciar_algoritmo()
+    reglas_restaurantes = sistema_recomendacion_restaurantes.iniciar_algoritmo()
+    reglas_teatros = sistema_recomendacion_teatros.iniciar_algoritmo()
+    reglas_monumentos = sistema_recomendacion_monumentos.iniciar_algoritmo()
+    
+    with open(f'app/data/reglas_asociacion_museos.json', 'w') as f:
+        json.dump(reglas_museos, f)
+    with open(f'app/data/reglas_asociacion_hoteles.json', 'w') as f:
+        json.dump(reglas_hoteles, f)
+    with open(f'app/data/reglas_asociacion_parques.json', 'w') as f:
+        json.dump(reglas_parques, f)
+    with open(f'app/data/reglas_asociacion_restaurantes.json', 'w') as f:
+        json.dump(reglas_restaurantes, f)
+    with open(f'app/data/reglas_asociacion_teatros.json', 'w') as f:
+        json.dump(reglas_teatros, f)
+    with open(f'app/data/reglas_asociacion_monumentos.json', 'w') as f:
+        json.dump(reglas_monumentos, f)
+    """
+    
+    return jsonify({"mensaje": f"Se han generado las reglas de asociación con exito."}), 200

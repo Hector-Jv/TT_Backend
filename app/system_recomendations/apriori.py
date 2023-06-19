@@ -12,7 +12,7 @@ class Apriori:
         self.nombre_columnas = None # La genera la función representar datos (List)
         self.resultados_iteraciones = None # La genera la función iteraciones (List)
         self.iteraciones_obtenidas = [] # La genera la función iteraciones (Lista de diccionarios)
-        
+    
     def iniciar_algoritmo(self):
         self.representar_datos()
         self.iteraciones()
@@ -198,6 +198,7 @@ class Apriori:
                     datos_conjunto = {}
                     datos_conjunto["antecedente"] = conjunto[0]
                     datos_conjunto["consecuente"] = conjunto[1]
+                    """
                     datos_conjunto["soporte"] = round(iteracion[1] / numero_transacciones, 2)
                     
                     support_countA = 0
@@ -212,6 +213,7 @@ class Apriori:
                     if round(support_countA / support_count_inter, 2) < self.confianza:
                         continue
                     datos_conjunto["confianza"] = round(support_countA / support_count_inter, 2)
+                    """
                     reglas.append(datos_conjunto)
         
         reglas_sin_repeticiones = [dict(t) for t in set(tuple(d.items()) for d in reglas)]

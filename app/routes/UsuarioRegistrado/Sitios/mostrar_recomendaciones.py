@@ -54,9 +54,14 @@ def mostrar_recomendaciones(correo_usuario):
         datos_sitios.append(datos_sitio_dict)
     
     cve_sitios = [sitio["cve_sitio"]  for sitio in datos_sitios]
-    print(cve_sitios)
-    with open('app/data/reglas_asociacion_Museo.json', 'r') as f:
-        reglas_asociacion = json.load(f)
+    
+    ### RECOMENDACIONES DE MUSEOS ###
+    tipos_sitio = ["museos", "hoteles", "parques", "restaurantes", "teatros", "monumentos"]
+    reglas_asociacion = []
+    
+    for tipo in tipos_sitio:
+        with open(f'app/data/reglas_asociacion_{tipo}.json') as f:
+            reglas_asociacion = reglas_asociacion + json.load(f)
     
     sitios_recomendados = []
     for regla in reglas_asociacion:
