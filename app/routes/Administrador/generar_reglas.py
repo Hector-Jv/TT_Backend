@@ -40,12 +40,12 @@ def generar_reglas():
     
     ### GENERACION DE REGLAS DE ASOCIACION ###
     
-    soporte_minimo = 2
-    confianza = 0.80
+    soporte_minimo = 3
+    confianza = 1
     
     historiales_encontrados = Historial.query.all()
     arreglo_historiales = [(historial.correo_usuario, historial.cve_sitio) for historial in historiales_encontrados if historial.visitado]
-    print(arreglo_historiales)
+    # print(arreglo_historiales)
     
     
     sitios_filtrados = {
@@ -108,11 +108,12 @@ def generar_reglas():
         "teatros": Apriori(agrupacion_sitio["teatros"], soporte_minimo, confianza),
         "monumentos": Apriori(agrupacion_sitio["monumentos"], soporte_minimo, confianza),
     }
-
+    
     import concurrent.futures
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future_to_recomendacion = {executor.submit(recomendacion.iniciar_algoritmo): recomendacion for recomendacion in sistemas_recomendacion.values()}
+        # print("Variable future: ", future_to_recomendacion)
         for future in concurrent.futures.as_completed(future_to_recomendacion):
             tipo_sitio = list(sistemas_recomendacion.keys())[list(sistemas_recomendacion.values()).index(future_to_recomendacion[future])]
             reglas = future.result()
@@ -120,12 +121,19 @@ def generar_reglas():
                 json.dump(reglas, f)
     
     """
-    reglas_museos = sistema_recomendacion_museos.iniciar_algoritmo()
-    reglas_hoteles = sistema_recomendacion_hoteles.iniciar_algoritmo()
-    reglas_parques = sistema_recomendacion_parques.iniciar_algoritmo()
-    reglas_restaurantes = sistema_recomendacion_restaurantes.iniciar_algoritmo()
-    reglas_teatros = sistema_recomendacion_teatros.iniciar_algoritmo()
-    reglas_monumentos = sistema_recomendacion_monumentos.iniciar_algoritmo()
+    reglas_museos = sistemas_recomendacion["museos"].iniciar_algoritmo()
+    print(f"Número de reglas de museos: {len(reglas_museos)} ")
+    reglas_hoteles = sistemas_recomendacion["hoteles"].iniciar_algoritmo()
+    print(f"Número de reglas de hoteles: {len(reglas_hoteles)} ")
+    reglas_parques = sistemas_recomendacion["parques"].iniciar_algoritmo()
+    print(f"Número de reglas de parques: {len(reglas_parques)} ")
+    reglas_restaurantes = sistemas_recomendacion["restaurantes"].iniciar_algoritmo()
+    print(f"Número de reglas de restaurantes: {len(reglas_restaurantes)} ")
+    reglas_teatros = sistemas_recomendacion["teatros"].iniciar_algoritmo()
+    print(f"Número de reglas de teatros: {len(reglas_teatros)} ")
+    reglas_monumentos = sistemas_recomendacion["monumentos"].iniciar_algoritmo()
+    print(f"Número de reglas de monumentos: {len(reglas_monumentos)} ")
+    
     
     with open(f'app/data/reglas_asociacion_museos.json', 'w') as f:
         json.dump(reglas_museos, f)
@@ -140,5 +148,4 @@ def generar_reglas():
     with open(f'app/data/reglas_asociacion_monumentos.json', 'w') as f:
         json.dump(reglas_monumentos, f)
     """
-    
     return jsonify({"mensaje": f"Se han generado las reglas de asociación con exito."}), 200

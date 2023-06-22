@@ -47,10 +47,6 @@ def ruta_modificar_sitio():
     sitio_encontrado: Sitio = Sitio.query.get(obligatorios['cve_sitio'])
     if not sitio_encontrado:
         return jsonify({"error": "El sitio a modificar no existe."}), 404
-    
-    obtener_tipo_sitio = TipoSitio.query.get(request.form["cve_tipo_sitio"])
-    if not obtener_tipo_sitio:
-        return jsonify({"error": "No existe un tipo de sitio registrado con esa clave."}), 400
 
     ## MODIFICACION DE LOS DATOS ##
     
@@ -71,34 +67,38 @@ def ruta_modificar_sitio():
     arreglo_etiquetas = None 
     arreglo_servicios = None 
     
-    if request.form['nombre_sitio']:
+    # 
+    cambio_tipo_sitio = False
+    
+    if not request.form['nombre_sitio']:
         nombre_sitio = request.form['nombre_sitio']
-    if request.form['longitud'] != '':
+    if not request.form['longitud']:
         longitud = float(request.form['longitud'])
-    if request.form['latitud'] != '':
+    if not request.form['latitud']:
         latitud = float(request.form['latitud'])
-    if request.form['cve_tipo_sitio'] != '': 
+    if not request.form['cve_tipo_sitio']:
+        cambio_tipo_sitio = True
         cve_tipo_sitio = int(request.form['cve_tipo_sitio'])
-    if request.form['cve_delegacion'] != '':
+    if not request.form['cve_delegacion']:
         cve_delegacion = int(request.form['cve_delegacion'])
-    if request.form['colonia'] != '':
+    if not request.form['colonia']:
         colonia = request.form['colonia']
     
-    if request.form['descripcion'] != '':
+    if not request.form['descripcion']:
         descripcion = request.form['descripcion']
-    if request.form['correo'] != '':
+    if not request.form['correo']:
         correo = request.form['correo']
-    if request.form['costo'] != '':
+    if not request.form['costo']:
         costo = float(request.form['costo'])
-    if request.form['pagina_web'] != '':
+    if not request.form['pagina_web']:
         pagina_web = request.form['pagina_web']
-    if request.form['telefono'] != '':
+    if not request.form['telefono']:
         telefono = request.form['telefono']
-    if request.form['adscripcion'] != '':
+    if not request.form['adscripcion']:
         adscripcion = request.form['adscripcion']
-    if request.form['etiquetas'] != '':
+    if not request.form['etiquetas']:
         arreglo_etiquetas = json.loads(request.form['etiquetas'])
-    if request.form['servicios'] != '':
+    if request.form['servicios']:
         arreglo_servicios = json.loads(request.form['servicios'])
     
     return jsonify({"mensaje": "Todo bien"}), 200

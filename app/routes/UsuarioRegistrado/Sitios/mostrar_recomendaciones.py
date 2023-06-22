@@ -55,17 +55,18 @@ def mostrar_recomendaciones(correo_usuario):
     
     cve_sitios = [sitio["cve_sitio"]  for sitio in datos_sitios]
     
-    ### RECOMENDACIONES DE MUSEOS ###
+    ### RECOMENDACIONES ###
     tipos_sitio = ["museos", "hoteles", "parques", "restaurantes", "teatros", "monumentos"]
     reglas_asociacion = []
     
     for tipo in tipos_sitio:
         with open(f'app/data/reglas_asociacion_{tipo}.json') as f:
+            
             reglas_asociacion = reglas_asociacion + json.load(f)
     
     sitios_recomendados = []
     for regla in reglas_asociacion:
-        print(regla)
+        # print(regla)
         cumple = True
         for elemento in regla["antecedente"]:
             if not elemento in cve_sitios:

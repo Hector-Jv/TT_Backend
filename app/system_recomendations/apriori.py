@@ -1,3 +1,4 @@
+from flask import jsonify
 import pandas as pd
 from itertools import combinations
 import os
@@ -41,32 +42,36 @@ class Apriori:
         # Se muestra una tabla donde se representa si en una transacción tiene un cierto item #
         dataframe_datos = pd.DataFrame(matriz_elementos)
         dataframe_datos.columns = nombre_columnas
+        """
         print("#####################################")
         print("##### FORMATO DE DATOS TABULAR #####")
         print("#####################################\n")
         print(dataframe_datos)
         print("\n")
-                
+        """      
         self.tabla_inicial = dataframe_datos
         self.nombre_columnas = nombre_columnas
               
     def iteraciones(self, num_iteracion: int = 1, datos_a_eliminar: list = []):
-        
+        """
         print("#####################################")
         print(f"#####        ITERACIÓN {num_iteracion}       #####")
         print("#####################################\n")
-        
+        """
         # Se generan las combinaciones #
         combinaciones = combinations(self.nombre_columnas, num_iteracion)
         combinaciones = list(combinaciones)
+        """
         print("## NÚMERO DE COMBINACIONES ##")
         print(len(combinaciones))
+        """
         
         # Se realiza la poda #
         combinaciones = self.eliminar_combinaciones(combinaciones, datos_a_eliminar)
+        """
         print("## NÚMERO DE COMBINACIONES DESPUÉS DE APLICAR PODA ##")
         print(len(combinaciones))
-        
+        """
         # Se contabiliza el número de coincidencias que hay de cada combinación #
         resultados = []
         for combinacion in combinaciones:
@@ -96,7 +101,7 @@ class Apriori:
             datos_combinacion = (combinacion, coincidencias)
             resultados.append(datos_combinacion)
         
-        print("# CONJUNTO DE ELEMENTOS FRECUENTES #\n")
+        # print("# CONJUNTO DE ELEMENTOS FRECUENTES #\n")
         dict_resultados = {}
         dict_resultados['Items'] = []
         dict_resultados['Cantidad'] = []
@@ -106,7 +111,7 @@ class Apriori:
             dict_resultados['Cantidad'].append(resultado[1])
         
         dataframe_resultados = pd.DataFrame.from_dict(dict_resultados)
-        print(dataframe_resultados)
+        # print(dataframe_resultados)
         
         # Se eliminan los elementos que no cumplan con el soporte minimo #
         datos_removidos = []
@@ -119,7 +124,7 @@ class Apriori:
                 
         self.iteraciones_obtenidas.append({num_iteracion: datos_resultantes})
         
-        print(f"\n# CONJUNTO DE ELEMENTOS ELIMINADOS ITERACIÓN {num_iteracion} #\n")
+        # print(f"\n# CONJUNTO DE ELEMENTOS ELIMINADOS ITERACIÓN {num_iteracion} #\n")
         dict_eliminados = {}
         dict_eliminados['Items'] = []
         dict_eliminados['Cantidad'] = []
@@ -129,10 +134,10 @@ class Apriori:
             dict_eliminados['Cantidad'].append(resultado[1])
         
         dataframe_eliminados = pd.DataFrame.from_dict(dict_eliminados)
-        print(dataframe_eliminados)
-        print("\n")
+        # print(dataframe_eliminados)
+        # print("\n")
         
-        print(f"\n# CONJUNTO DE ELEMENTOS CORRECTOS ITERACIÓN {num_iteracion} #\n")
+        # print(f"\n# CONJUNTO DE ELEMENTOS CORRECTOS ITERACIÓN {num_iteracion} #\n")
         dict_resultantes = {}
         dict_resultantes['Items'] = []
         dict_resultantes['Cantidad'] = []
@@ -142,8 +147,8 @@ class Apriori:
             dict_resultantes['Cantidad'].append(resultado[1])
         
         dataframe_resultante = pd.DataFrame.from_dict(dict_resultantes)
-        print(dataframe_resultante)
-        print("\n")
+        # print(dataframe_resultante)
+        # print("\n")
         
         """
         print(f"DATOS RESULTANTES DE ITERACIÓN {num_iteracion}: ")
@@ -178,13 +183,19 @@ class Apriori:
         return resultado
     
     def generar_reglas(self):
+        """
         print("##########################################")
         print(f"### GENERACIÓN DE REGLAS DE ASOCIACIÓN ##")
         print("##########################################\n")
         """
+        
+        """
         print("CONJUNTO DE ELEMENTOS FRECUENTES FINALES")
         # print(self.iteraciones_obtenidas)
         """
+        
+        #return jsonify({"mensaje": "Ver la consola"}), 200
+        
         reglas = []
         conjunto_elementos_frecuentes = [elementos[0] for elementos in self.resultados_iteraciones]
         numero_transacciones = len(self.lista_inicial)
@@ -198,7 +209,7 @@ class Apriori:
                     datos_conjunto = {}
                     datos_conjunto["antecedente"] = conjunto[0]
                     datos_conjunto["consecuente"] = conjunto[1]
-                    """
+                    
                     datos_conjunto["soporte"] = round(iteracion[1] / numero_transacciones, 2)
                     
                     support_countA = 0
@@ -213,11 +224,11 @@ class Apriori:
                     if round(support_countA / support_count_inter, 2) < self.confianza:
                         continue
                     datos_conjunto["confianza"] = round(support_countA / support_count_inter, 2)
-                    """
+                    
                     reglas.append(datos_conjunto)
         
         reglas_sin_repeticiones = [dict(t) for t in set(tuple(d.items()) for d in reglas)]
-        print(reglas_sin_repeticiones)
+        print("Número de reglas generadas: ", len(reglas_sin_repeticiones))
         return reglas_sin_repeticiones
             
     def generar_combinaciones(self, lista):
