@@ -2,7 +2,7 @@ import re
 from os import getcwd
 from flask import Blueprint, current_app, jsonify, request
 from app import db
-from app.models import Usuario
+from app.models import Usuario, TipoUsuario
 import cloudinary.uploader
 
 registrar_usuario_bp = Blueprint('Registrar usuario', __name__)
@@ -72,10 +72,12 @@ def registrar_usuario():
     except Exception as e:
         return jsonify({"mensaje": "Error al crear al usuario"}), 400
     
+    tipo_usuario_encontrado: TipoUsuario = TipoUsuario.query.get(nuevo_usuario.cve_tipo_usuario)
+    
     return jsonify({
         "correo_usuario": nuevo_usuario.correo_usuario,
         "usuario": nuevo_usuario.usuario,
         "cve_tipo_usuario": nuevo_usuario.cve_tipo_usuario,
+        "tipo_usuario": tipo_usuario_encontrado.tipo_usuario,
         "link_imagen": nuevo_usuario.link_imagen
     }), 200
-      
