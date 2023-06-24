@@ -1,8 +1,9 @@
+import json
 import re
 from os import getcwd
 from flask import Blueprint, current_app, jsonify, request
 from app import db
-from app.models import Usuario, TipoUsuario
+from app.models import Usuario, TipoUsuario, UsuarioEtiqueta, UsuarioServicio
 import cloudinary.uploader
 
 registrar_usuario_bp = Blueprint('Registrar usuario', __name__)
@@ -68,16 +69,52 @@ def registrar_usuario():
             link_imagen = link_foto
         )
         db.session.add(nuevo_usuario)
-        db.session.commit()
+        db.session.flush()
+        # db.session.commit()
     except Exception as e:
         return jsonify({"mensaje": "Error al crear al usuario"}), 400
     
     tipo_usuario_encontrado: TipoUsuario = TipoUsuario.query.get(nuevo_usuario.cve_tipo_usuario)
     
+    arreglo_etiquetas = request.form["etiquetas"]
+    arreglo_servicios = request.form["servicios"]
+    
+    if arreglo_etiquetas:
+        arreglo_etiquetas = json.loads(arreglo_etiquetas)
+    if arreglo_servicios:
+        arreglo_servicios = json.loads(arreglo_servicios)
+    
+    try:
+        for etiqueta in arreglo_etiquetas:
+            usuario_etiqueta_nuevo: UsuarioEtiqueta = UsuarioEtiqueta(
+                nuevo_usuario.correo_usuario,
+                etiqueta["label"]
+            )
+            db.session.add(usuario_etiqueta_nuevo)
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Error en agregar las preferencias del usuario (etiquetas)."}), 400
+    
+    try:
+        for servicio in arreglo_servicios:
+            usuario_servicio_nuevo: UsuarioServicio = UsuarioServicio(
+                nuevo_usuario.correo_usuario,
+                servicio["label"]
+            )
+            db.session.add(usuario_servicio_nuevo)
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Error en agregar las preferencias del usuario (servicios)."}), 400
+
+    db.session.commit()
+
     return jsonify({
         "correo_usuario": nuevo_usuario.correo_usuario,
         "usuario": nuevo_usuario.usuario,
         "cve_tipo_usuario": nuevo_usuario.cve_tipo_usuario,
         "tipo_usuario": tipo_usuario_encontrado.tipo_usuario,
-        "link_imagen": nuevo_usuario.link_imagen
+        "link_imagen": nuevo_usuario.link_imagen,
+        "servicios": [servicio.cve_servicio for servicio in UsuarioServicio.query.filter_by(correo_usuario=nuevo_usuario.correo_usuario).all()],
+        "etiquetas": [etiqueta.cve_etiqueta for etiqueta in UsuarioEtiqueta.query.filter_by(correo_usuario=nuevo_usuario.correo_usuario).all()]
     }), 200
+    

@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Usuario, TipoUsuario
+from app.models import Usuario, TipoUsuario, UsuarioServicio, UsuarioEtiqueta
 
 iniciar_sesion_bp = Blueprint('iniciar_sesion', __name__)
 
@@ -45,7 +45,9 @@ def inicio_sesion():
         "usuario": usuario_encontrado.usuario,
         "cve_tipo_usuario": usuario_encontrado.cve_tipo_usuario,
         "tipo_usuario": tipo_usuario.tipo_usuario,
-        "link_imagen": usuario_encontrado.link_imagen
+        "link_imagen": usuario_encontrado.link_imagen,
+        "servicios": [servicio.cve_servicio for servicio in UsuarioServicio.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario).all()],
+        "etiquetas": [etiqueta.cve_etiqueta for etiqueta in UsuarioEtiqueta.query.filter_by(correo_usuario=usuario_encontrado.correo_usuario).all()]
     }), 200
 
         

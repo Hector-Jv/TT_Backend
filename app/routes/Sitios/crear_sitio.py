@@ -12,7 +12,7 @@ def crear_sitio():
     ## VALIDACIONES DE ENTRADA ## 
 
     identificadores = ["correo_usuario", "nombre_sitio",
-                       "longitud", "latitud",
+                       "longitud", "latitud", "direccion",
                        "descripcion", "correo",
                        "costo", "pagina_web",
                        "telefono", "adscripcion",
@@ -28,6 +28,8 @@ def crear_sitio():
     nombre_sitio = request.form["nombre_sitio"]
     longitud = float(request.form["longitud"])
     latitud = float(request.form["latitud"])
+    direccion = request.form["direccion"]
+    
     cve_tipo_sitio = int(request.form["cve_tipo_sitio"]) 
     cve_delegacion = int(request.form["cve_delegacion"])
     colonia = request.form["colonia"]
@@ -51,6 +53,7 @@ def crear_sitio():
         "nombre_sitio": request.form["nombre_sitio"],
         "longitud": float(request.form["longitud"]),
         "latitud": float(request.form["latitud"]),
+        "direccion": request.form["direccion"],
         "cve_tipo_sitio": int(request.form["cve_tipo_sitio"]),
         "cve_delegacion": int(request.form["cve_delegacion"]),
         "colonia": request.form["colonia"]
@@ -96,6 +99,7 @@ def crear_sitio():
         nombre_sitio, 
         longitud, 
         latitud,
+        direccion,
         cve_tipo_sitio,
         obtener_colonia.cve_colonia,
         # Opcionales #

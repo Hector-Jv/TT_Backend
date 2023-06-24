@@ -12,5 +12,7 @@ from .sitio import Sitio
 from .tipo_sitio import TipoSitio
 from .tipo_usuario import TipoUsuario
 from .usuario import Usuario
+from .usuario_etiqueta import UsuarioEtiqueta
+from .usuario_servicio import UsuarioServicio
 from .sitio_favorito import SitioFavorito
 from .tipositio_etiqueta import TipoSitioEtiqueta

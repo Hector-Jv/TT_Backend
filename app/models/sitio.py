@@ -7,6 +7,7 @@ class Sitio(db.Model):
     nombre_sitio = db.Column(db.String(400), nullable=False, unique=True)
     longitud = db.Column(db.Float(precision=10), nullable=False)
     latitud = db.Column(db.Float(precision=10), nullable=False)
+    direccion = db.Column(db.String(400), nullable=False)
     cve_tipo_sitio = db.Column(db.Integer, db.ForeignKey('tipo_sitio.cve_tipo_sitio'), nullable=False)
     cve_colonia = db.Column(db.Integer, db.ForeignKey('colonia.cve_colonia'), nullable=False)
     
@@ -23,7 +24,7 @@ class Sitio(db.Model):
     num_calificaciones = db.Column(db.Integer, nullable=True, default=0)
     habilitado = db.Column(db.Boolean, default=True)
     
-    def __init__(self, nombre_sitio: str, longitud: float, latitud: float, cve_tipo_sitio: int, cve_colonia: int,
+    def __init__(self, nombre_sitio: str, longitud: float, latitud: float, direccion: str, cve_tipo_sitio: int, cve_colonia: int,
                  descripcion: str = "", correo_sitio: str = "", costo_promedio: float = 0, 
                  pagina_web: str = "", telefono: str = "", adscripcion: str = "", calificacion: float = None):
         
@@ -31,6 +32,7 @@ class Sitio(db.Model):
         self.nombre_sitio = nombre_sitio
         self.longitud = longitud
         self.latitud = latitud
+        self.direccion = direccion
         self.cve_tipo_sitio = cve_tipo_sitio
         self.cve_colonia = cve_colonia
         # Opcionales #
