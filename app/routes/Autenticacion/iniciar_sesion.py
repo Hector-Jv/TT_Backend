@@ -37,6 +37,9 @@ def inicio_sesion():
     if not usuario_encontrado.verificar_contrasena(contrasena):
         return jsonify({"error": "Contraseña incorrecta"}), 401
     
+    if not usuario_encontrado.habilitado:
+        return jsonify({"error": "La cuenta del usuario a sido inhabilitado."}), 400
+    
     ## SE REGRESAN LOS DATOS DEL USUARIO REGISTRADO ##
     tipo_usuario: TipoUsuario = TipoUsuario.query.get(usuario_encontrado.cve_tipo_usuario)
     
