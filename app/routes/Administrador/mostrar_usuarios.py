@@ -8,7 +8,7 @@ from app.models import Usuario
 mostrar_usuarios_bp = Blueprint('mostrar_usuarios', __name__)
 
 @mostrar_usuarios_bp.route('/mostrar_usuarios', methods=['GET'])
-def mostrar_usuarios(cve_tipo_sitio):
+def mostrar_usuarios():
     
     usuarios_encontrados = Usuario.query.all()
     
