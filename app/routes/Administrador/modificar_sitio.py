@@ -1,8 +1,6 @@
 from flask import Blueprint, jsonify, request
-from datetime import datetime
 from app import db
-from app.models import Usuario, TipoUsuario, Sitio, TipoSitio
-import json
+from app.models import Usuario, TipoUsuario, Sitio, SitioEtiqueta, ServicioHotel
 
 modificar_sitio_bp = Blueprint('Modificar sitio', __name__)
 
@@ -14,7 +12,7 @@ def ruta_modificar_sitio():
     
     identificadores = ["correo_usuario", "cve_sitio", 
                        "nombre_sitio", "longitud",
-                       "latitud", "cve_tipo_sitio",
+                       "latitud", "direccion",
                        "cve_delegacion", "colonia",
                        "descripcion", "correo",
                        "costo", "pagina_web",
@@ -50,59 +48,51 @@ def ruta_modificar_sitio():
 
     ## MODIFICACION DE LOS DATOS ##
     
-    ## Datos opcionales ##
-    nombre_sitio = None
-    longitud = None
-    latitud = None
-    cve_tipo_sitio = None
-    cve_delegacion = None
-    colonia = None
+    try:
+        sitio_encontrado.nombre_sitio = request.form['nombre_sitio']
+        sitio_encontrado.longitud = request.form['longitud']
+        sitio_encontrado.latitud = request.form['latitud']
+        sitio_encontrado.direccion = request.form['direccion']
+        sitio_encontrado.descripcion = request.form['descripcion']
+        sitio_encontrado.correo = request.form['correo']
+        sitio_encontrado.costo = request.form['costo']
+        sitio_encontrado.pagina_web = request.form['pagina_web']
+        sitio_encontrado.telefono = request.form['telefono']
+        sitio_encontrado.adscripcion = request.form['adscripcion']
+    except Exception as e:
+        return jsonify({"error": "Hubo un error al hacer las modificaciones del sitio."}), 400
     
-    descripcion = None
-    correo = None
-    costo = None
-    pagina_web = None
-    telefono = None
-    adscripcion = None
-    arreglo_etiquetas = None 
-    arreglo_servicios = None 
+    try:
+        if request.form['etiquetas']:
+            for etiqueta in SitioEtiqueta.query.filter_by(cve_sitio=sitio_encontrado.cve_sitio).all():
+                db.session.delete(etiqueta)
+            
+            for etiqueta in request.form['arreglo_etiquetas']:
+                agregar_etiqueta: SitioEtiqueta = SitioEtiqueta(
+                    sitio_encontrado.cve_sitio,
+                    etiqueta["value"]
+                )
+                db.session.add(agregar_etiqueta)
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Hubo un error al modificar las etiquetas."}), 400
     
-    # 
-    cambio_tipo_sitio = False
+    try:
+        if request.form['servicios']:
+            for servicio in ServicioHotel.query.filter_by(cve_sitio=sitio_encontrado.cve_sitio).all():
+                db.session.delete(servicio)
+            
+            for servicio in request.form['servicios']:
+                agregar_servicio: ServicioHotel = ServicioHotel(
+                    sitio_encontrado.cve_sitio,
+                    servicio["value"]
+                )
+                db.session.add(agregar_servicio)
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Hubo un error al modificar las servicios."}), 400
     
-    if not request.form['nombre_sitio']:
-        nombre_sitio = request.form['nombre_sitio']
-    if not request.form['longitud']:
-        longitud = float(request.form['longitud'])
-    if not request.form['latitud']:
-        latitud = float(request.form['latitud'])
-    if not request.form['cve_tipo_sitio']:
-        cambio_tipo_sitio = True
-        cve_tipo_sitio = int(request.form['cve_tipo_sitio'])
-    if not request.form['cve_delegacion']:
-        cve_delegacion = int(request.form['cve_delegacion'])
-    if not request.form['colonia']:
-        colonia = request.form['colonia']
-    
-    if not request.form['descripcion']:
-        descripcion = request.form['descripcion']
-    if not request.form['correo']:
-        correo = request.form['correo']
-    if not request.form['costo']:
-        costo = float(request.form['costo'])
-    if not request.form['pagina_web']:
-        pagina_web = request.form['pagina_web']
-    if not request.form['telefono']:
-        telefono = request.form['telefono']
-    if not request.form['adscripcion']:
-        adscripcion = request.form['adscripcion']
-    if not request.form['etiquetas']:
-        arreglo_etiquetas = json.loads(request.form['etiquetas'])
-    if request.form['servicios']:
-        arreglo_servicios = json.loads(request.form['servicios'])
-    
-    return jsonify({"mensaje": "Todo bien"}), 200
-    
+    db.session.commit()
     
     return jsonify({"mensaje": "Se han modificado los datos del sitio."}), 201
     
