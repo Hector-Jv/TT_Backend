@@ -127,7 +127,7 @@ def crear_sitio():
         for servicio in arreglo_servicios:
             nueva_relacion = ServicioHotel(
                 nuevo_sitio.cve_sitio,
-                servicio["cve_servicio"]
+                servicio["value"]
             )
             db.session.add(nueva_relacion)
                 

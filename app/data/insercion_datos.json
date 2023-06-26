@@ -1,0 +1,38 @@
+[
+    {
+        "value": 7,
+        "label": "Tacos"
+    },
+    {
+        "value": 8,
+        "label": "Hamburguesas"
+    },
+    {
+        "value": 9,
+        "label": "Pizzas"
+    },
+    {
+        "value": 10,
+        "label": "Mariscos"
+    },
+    {
+        "value": 11,
+        "label": "Cortes"
+    },
+    {
+        "value": 12,
+        "label": "Buffet"
+    },
+    {
+        "value": 13,
+        "label": "Música en vivo"
+    },
+    {
+        "value": 14,
+        "label": "Románticos"
+    },
+    {
+        "value": 15,
+        "label": "Restaurante/bar"
+    }
+]

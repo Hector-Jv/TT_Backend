@@ -88,7 +88,7 @@ def registrar_usuario():
         for etiqueta in arreglo_etiquetas:
             usuario_etiqueta_nuevo: UsuarioEtiqueta = UsuarioEtiqueta(
                 nuevo_usuario.correo_usuario,
-                etiqueta["label"]
+                etiqueta["value"]
             )
             db.session.add(usuario_etiqueta_nuevo)
     except Exception as e:
@@ -99,7 +99,7 @@ def registrar_usuario():
         for servicio in arreglo_servicios:
             usuario_servicio_nuevo: UsuarioServicio = UsuarioServicio(
                 nuevo_usuario.correo_usuario,
-                servicio["label"]
+                servicio["value"]
             )
             db.session.add(usuario_servicio_nuevo)
     except Exception as e:
