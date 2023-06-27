@@ -91,17 +91,20 @@ def mostrar_recomendaciones(correo_usuario):
         cves_servicios = [servicio.cve_servicio for servicio in UsuarioServicio.query.filter_by(correo_usuario = correo_usuario).all()]
         
         for sitio in datos_sitios:
-            if sitio["calificacion"] == None:
-                continue
+            """if sitio["calificacion"] == None:
+                continue"""
             
-            if sitio["calificacion"] > 3:
-                lista_sitios_en_frio.append(sitio)
-                continue
+            if sitio["calificacion"]:
+                if sitio["calificacion"] > 3:
+                    lista_sitios_en_frio.append(sitio)
+                    continue
             
-            if sitio["cve_tipo_sitio"] == 1 or sitio["cve_tipo_sitio"] == 6 and len(cves_etiquetas) != 0:
+            if sitio["cve_tipo_sitio"] == 1 or sitio["cve_tipo_sitio"] == 6 and len(cves_etiquetas) > 0:
+                
                 etiquetas_sitio = [etiquetaSitio.cve_etiqueta for etiquetaSitio in SitioEtiqueta.query.filter_by(cve_sitio=sitio["cve_sitio"]).all()]
                 if not etiquetas_sitio:
                     continue
+                
                 aux = False
                 for etiqueta_sitio in etiquetas_sitio:
                     if etiqueta_sitio in cves_etiquetas:
@@ -111,7 +114,7 @@ def mostrar_recomendaciones(correo_usuario):
                     lista_sitios_en_frio.append(sitio)
                     continue
             
-            if sitio["cve_tipo_sitio"] == 5 and len(cves_servicios) != 0:
+            if sitio["cve_tipo_sitio"] == 5 and len(cves_servicios) > 0:
                 servicios_sitio = [servicioSitio.cve_servicio for servicioSitio in ServicioHotel.query.filter_by(cve_sitio=sitio["cve_sitio"]).all()]
                 if not servicios_sitio:
                     continue

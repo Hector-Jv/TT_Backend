@@ -12,7 +12,6 @@ registrar_usuario_bp = Blueprint('Registrar usuario', __name__)
 def registrar_usuario():
     
     ## VALIDACIONES DE ENTRADA ## 
-    
     identificadores = ['correo', 'usuario', 'contrasena']
     
     for id in identificadores:
@@ -70,7 +69,6 @@ def registrar_usuario():
         )
         db.session.add(nuevo_usuario)
         db.session.flush()
-        # db.session.commit()
     except Exception as e:
         return jsonify({"mensaje": "Error al crear al usuario"}), 400
     
@@ -78,7 +76,6 @@ def registrar_usuario():
     
     arreglo_etiquetas = request.form["etiquetas"]
     arreglo_servicios = request.form["servicios"]
-    
     if arreglo_etiquetas:
         arreglo_etiquetas = json.loads(arreglo_etiquetas)
     if arreglo_servicios:
