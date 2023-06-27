@@ -103,6 +103,7 @@ def mostrar_info_sitio(cve_sitio):
             comentario["comentario"] = comentario_encontrado.comentario
             comentario["fecha_comentario"] = comentario_encontrado.fecha_comentario
             comentario["fotos_comentario"] = fotosC
+            comentario["calificacion"] = comentario_encontrado.calificacion
             comentarios.append(comentario)
     sitio_dict["comentarios"] = comentarios
     

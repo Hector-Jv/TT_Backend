@@ -1,7 +1,7 @@
 import datetime
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models import Historial, Comentario, FotoComentario
+from app.models import Historial, Comentario, FotoComentario, Sitio
 
 eliminar_comentario_bp = Blueprint('eliminar_comentario', __name__)
 
@@ -31,7 +31,7 @@ def eliminar_comentario():
         return jsonify({"error": "Es necesario mandar un valor valido en cve_sitio."}), 400
     
     
-    ## VALIDACIONES DE ACCESO ##
+    ## ELIMINACION DE RESEÑA ##
     historial_encontrado: Historial = Historial.query.filter_by(correo_usuario=correo_usuario, cve_sitio=cve_sitio).first()
     if not historial_encontrado:
         return jsonify({"error": "No se encontró registro de historial"}), 404
@@ -40,18 +40,25 @@ def eliminar_comentario():
     if not comentario_encontrado:
         return jsonify({"error": "No se encontró comentario del sitio."}), 404
     
-    print("Hola comentario_encontrado")
-    
-    
     fotos_encontradas = FotoComentario.query.filter_by(cve_comentario=comentario_encontrado.cve_comentario).all()
     if fotos_encontradas:
         for foto in fotos_encontradas:
             db.session.delete(foto)
-    db.session.flush()
+            db.session.flush()
+    
+    ## SE ACTUALIZA LA INFORMACIÓN DEL SITIO ##
+    sitio_encontrado:Sitio = Sitio.query.get(cve_sitio)
+    
+    if sitio_encontrado.num_calificaciones == 1 and comentario_encontrado.calificacion != None:
+        sitio_encontrado.num_calificaciones = 0
+        sitio_encontrado.calificacion = None
+    elif sitio_encontrado.num_calificaciones > 1 and comentario_encontrado.calificacion != None:
+        sitio_encontrado.calificacion = ((sitio_encontrado.calificacion * sitio_encontrado.num_calificaciones) - comentario_encontrado.calificacion) / (sitio_encontrado.num_calificaciones - 1)
+        sitio_encontrado.num_calificaciones -= 1
+    
     
     db.session.delete(comentario_encontrado)
     db.session.commit()
     
-    print("Hola commit")
         
     return jsonify({"mensaje": "Se ha eliminado el comentario correctamente."}), 200
